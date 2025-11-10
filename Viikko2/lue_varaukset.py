@@ -17,15 +17,37 @@ Sähköposti: anna.virtanen@example.com
 """
 
 def main():
-    # Määritellään tiedoston nimi suoraan koodissa
-    varaukset = "varaukset.txt"
 
+    
+    # Määritellään tiedoston nimi suoraan koodissa
+    varauksetdata = "varaukset.txt"
+    varaus_lista = []
     # Avataan tiedosto ja luetaan sisältö
-    with open(varaukset, "r", encoding="utf-8") as f:
-        varaus = f.read().strip()
+    with open(varauksetdata, "r", encoding="utf-8") as f:
+        varaukset = f.readlines()
+        for rivi in varaukset:
+            osat = rivi.strip().split("|")
+            varaus = {
+                "Varausnumero": osat[0],
+                "Varaaja": osat[1],
+                "Päivämäärä": osat[2],
+                "Aloitusaika": osat[3],
+                "Tuntimäärä": osat[4],
+                "Tuntihinta": osat[5],
+                #"Kokonaishinta": osat[6],
+                "Maksettu": osat[6],
+                "Kohde": osat[7],
+                "Puhelin": osat[8],
+                "Sähköposti": osat[9]
+            }
+            varaus_lista.append(varaus)
+    return varaus_lista
+    
+    
+    
 
     # Tulostetaan varaus konsoliin
-    print(varaus)
+    #print(varaus)
 
     # Kokeile näitä
     #print(varaus.split('|'))
@@ -41,4 +63,4 @@ def main():
     """
 
 if __name__ == "__main__":
-    main()
+    varaukset = main()
