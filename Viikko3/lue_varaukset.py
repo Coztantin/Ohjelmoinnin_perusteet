@@ -24,19 +24,39 @@ def hae_varaaja(varaus):
 
 def main():
     # Maaritellaan tiedoston nimi suoraan koodissa
-    varaukset = "varaukset.txt"
+    varauksetdata = "varaukset.txt"
+    varaukset_lista = []
 
     # Avataan tiedosto, luetaan ja splitataan sisalto
-    with open(varaukset, "r", encoding="utf-8") as f:
-        varaus = f.read().strip()
-        varaus = varaus.split('|')
+    with open(varauksetdata, "r", encoding="utf-8") as f:
+        varaukset = f.readlines()
+        # Jaetaan rivit ja jaetaan sisältö listaksi
+        for rivi in varaukset:
+            osat = rivi.strip().split('|')
+
+            varaus = {
+                "Varausnumero": int(osat[0]),
+                "Varaaja": str(osat[1]),
+                "Päivämäärä": datetime.strptime(osat[2], "%Y-%m-%d").strftime("%d.%m.%Y"),
+                "Aloitusaika": str(osat[3]).replace(":","."),
+                "Tuntimäärä": float(osat[4]),
+                "Tuntihinta": float(osat[5]),
+                "Kokonaishinta": float(osat[4]) * float(osat[5]),
+                "Maksettu": (osat[6].strip().lower() in ["true", "kyllä", "yes", "1"]),
+                "Kohde": str(osat[7]),
+                "Puhelin": str(osat[8]),
+                "Sähköposti": str(osat[9].strip())
+            }
+            varaukset_lista.append(varaus)
+    return varaukset_lista
+    
 
     # Toteuta loput funktio hae_varaaja(varaus) mukaisesti
     # Luotavat funktiota tekevat tietotyyppien muunnoksen
     # ja tulostavat esimerkkitulosteen mukaisesti
 
     #hae_varausnumero(varaus)
-    hae_varaaja(varaus)
+    #hae_varaaja(varaus)
     #hae_paiva(varaus)
     #hae_aloitusaika(varaus)
     #hae_tuntimaara(varaus)
@@ -48,4 +68,5 @@ def main():
     #hae_sahkoposti(varaus)
 
 if __name__ == "__main__":
-    main()
+    varaukset = main()
+    
