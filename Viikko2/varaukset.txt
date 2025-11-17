@@ -1,2 +1,3 @@
 123|Anna Virtanen|2025-10-31|10:00|2|19.95|True|Kokoustila A|0401234567|anna.virtanen@example.com
 666|Kimmo Gogsworth|2025-10-31|13:00|2|19.95|False|Kokoustila G|04555555|xXxGimmocxXx@hotparadice.de
+234|Maija Poppanen|2025-11-01|8:00|1|19.95|True|Kokoustila C|045678909|maija.poppanen@exelmaster.fi
