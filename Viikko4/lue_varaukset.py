@@ -78,5 +78,12 @@ def main():
     print( " ") #tyhjä rivi
 
     #Suoritetaan kolmas vaihe
+    print("3) Varausten status: onko vahvistettu vai ei?")
+    print( " ") #tyhjä rivi
+    for varaus in varaukset[1:]:
+        status = "Vahvistettu" if varaus[8] == True else "ei Vahvistettu"
+        print("- " + str(varaus[1]) + " → " + status)
+    print( " ") #tyhjä rivi
+
 if __name__ == "__main__":
     main()
