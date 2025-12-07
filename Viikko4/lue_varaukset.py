@@ -70,7 +70,7 @@ def main():
     print( " ") #tyhjä rivi
 
     #Suoritetaan toinen vaihe
-    print("2) Pitkät varaukset (yli 3 tuntia):")
+    print("2) Pitkät varaukset (≥ 3 tuntia):")
     print( " ") #tyhjä rivi
     for varaus in varaukset[1:]:
         if varaus[6] >= 3:
@@ -85,5 +85,29 @@ def main():
         print("- " + str(varaus[1]) + " → " + status)
     print( " ") #tyhjä rivi
 
+    #Suoritetaan neljäs vaihe
+    print("4) Yhteenveto vahvistuksista:")
+    print( " ") #tyhjä rivi
+    vahvistettu_count = 0
+    ei_vahvistettu_count = 0
+    for varaus in varaukset[1:]:
+        if varaus[8] == True:
+            vahvistettu_count += 1
+        else:
+            ei_vahvistettu_count += 1
+    print("- Vahvistettuja varauksia: ", vahvistettu_count, " kpl" )
+    print("- Ei vahvistettuja varauksia: ", ei_vahvistettu_count, " kpl" )
+    print( " ") #tyhjä rivi
+
+    #Suoritetaan viides vaihe
+    print("5) Vahvistettujen varausten kokonaistulot:")
+    kokonaistulot = 0.0
+    for varaus in varaukset[1:]:
+        if varaus[8] == True:
+            kokonaistulot += varaus[7]
+    
+    print("Vahvistettujen varausten kokonaistulot: {:.2f} €".format(kokonaistulot).replace('.', ','))
+    print( " ") #tyhjä rivi
+    
 if __name__ == "__main__":
     main()
