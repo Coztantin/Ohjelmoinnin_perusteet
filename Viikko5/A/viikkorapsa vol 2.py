@@ -77,14 +77,16 @@ def paivalaskut(tunti_lista: List[Dict]) -> List[Dict]:
                 paivaobj["Tuotanto_vaihe3"] += tunti["Tuotanto_vaihe3"]    
     return viikonpaivat
 
-def tulosta_viikko42(viikonpaivat: List[Dict]) -> str:
+def tulosta_viikko42(viikonpaivat: List[Dict]) -> None:
     '''Tulostaa viikonpäivien raportin konsoliin.'''
  
 
     print(" ")
+    print("-"*190)
     print("Viikon 42 sähkönkulutus ja -tuotanto kWh-yksikössä:")
     print("-"*190)
     print(" ")
+    print("-"*190)
     print("Päivä".ljust(15),"Päivämäärä".ljust(15), "Kulutus vaihe 1 kWh".rjust(25), "Kulutus vaihe 2 kWh".rjust(25), "Kulutus vaihe 3 kWh".rjust(25), "Tuotanto vaihe 1 kWh".rjust(25), "Tuotanto vaihe 2 kWh".rjust(25), "Tuotanto vaihe 3 kWh".rjust(25))
     print("-"*190)
     # Tulostetaan rivit omiin sarakkeisiin.
