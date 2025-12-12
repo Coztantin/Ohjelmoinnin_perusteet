@@ -77,19 +77,35 @@ def paivalaskut(tunti_lista: List[Dict]) -> List[Dict]:
                 paivaobj["Tuotanto_vaihe3"] += tunti["Tuotanto_vaihe3"]    
     return viikonpaivat
 
+def tulosta_viikko42(viikonpaivat: List[Dict]) -> str:
+    '''Tulostaa viikonpäivien raportin konsoliin.'''
+ 
+
+    print(" ")
+    print("Viikon 42 sähkönkulutus ja -tuotanto kWh-yksikössä:")
+    print("-"*190)
+    print(" ")
+    print("Päivä".ljust(15),"Päivämäärä".ljust(15), "Kulutus vaihe 1 kWh".rjust(25), "Kulutus vaihe 2 kWh".rjust(25), "Kulutus vaihe 3 kWh".rjust(25), "Tuotanto vaihe 1 kWh".rjust(25), "Tuotanto vaihe 2 kWh".rjust(25), "Tuotanto vaihe 3 kWh".rjust(25))
+    print("-"*190)
+    # Tulostetaan rivit omiin sarakkeisiin.
+    for vp in viikonpaivat:
+        print(vp["Päivä"].ljust(15),
+              f"{vp["Aika"].strftime("%d.%m.%Y")}".ljust(15),
+              f"{vp['Kulutus_vaihe1']:.2f}".replace(".", ",").rjust(25),
+              f"{vp['Kulutus_vaihe2']:.2f}".replace(".", ",").rjust(25),
+              f"{vp['Kulutus_vaihe3']:.2f}".replace(".", ",").rjust(25),
+              f"{vp['Tuotanto_vaihe1']:.2f}".replace(".", ",").rjust(25),
+              f"{vp['Tuotanto_vaihe2']:.2f}".replace(".", ",").rjust(25),
+              f"{vp['Tuotanto_vaihe3']:.2f}".replace(".", ",").rjust(25))
+    print("-"*190)
     
 def main():
+    '''Pääohjelma.'''
 
     tunti_lista = kasittele_Viikkodata(viikkodata)
     viikonpaivat = paivalaskut(tunti_lista)
-
-    print("Viikon 42 sähkönkulutus ja -tuotanto kWh-yksikössä:")
-    print("-----------------------------------------------------------")
-    print(" ")
+    tulosta_viikko42(viikonpaivat)
     
-    for vp in viikonpaivat:
-        print(vp)
 
 if __name__ == "__main__":
     main()
-    
