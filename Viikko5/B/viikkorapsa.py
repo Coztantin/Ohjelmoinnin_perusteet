@@ -78,7 +78,7 @@ def paivalaskut(tunti_lista: List[Dict], tiedostolista: List[str]) -> List[Dict]
     Yksi_paiva= defaultdict(lambda: {
         "Viikko": "",
         "Päivä": "",
-        "Aika": None,
+        "Aika": "",
         "Kulutus_vaihe1": 0.0,
         "Kulutus_vaihe2": 0.0,
         "Kulutus_vaihe3": 0.0,
@@ -96,6 +96,7 @@ def paivalaskut(tunti_lista: List[Dict], tiedostolista: List[str]) -> List[Dict]
         paivaobj = Yksi_paiva[pvm]
         paivaobj["Viikko"] = vko_nimi
         paivaobj["Päivä"] = viikonpaivat_kaantaja_en_fi[tunti["Aika"].strftime("%A")]
+        paivaobj["Aika"] = pvm
         paivaobj["Kulutus_vaihe1"] += tunti["Kulutus_vaihe1"]
         paivaobj["Kulutus_vaihe2"] += tunti["Kulutus_vaihe2"]
         paivaobj["Kulutus_vaihe3"] += tunti["Kulutus_vaihe3"]
@@ -105,39 +106,44 @@ def paivalaskut(tunti_lista: List[Dict], tiedostolista: List[str]) -> List[Dict]
     
     return list(Yksi_paiva.values())
 
-def tulosta_viikko42(Paivamaara_data) -> None:
-    '''Tulostaa viikonpäivien raportin konsoliin.'''
- 
+def tulosta_viikot(Paivamaara_data) -> None:
+    '''Tulostaa viikonpäivien raportin konsoliin. Erottelee viikot viivalla.'''
+    edellinen_viikko = None
+
 
     print(" ")
-    print("-"*190)
-    print("Viikon 42 sähkönkulutus ja -tuotanto kWh-yksikössä:")
-    print("-"*190)
+    print("-"*210)
+    print("Viikkojen sähkönkulutus ja -tuotanto kWh-yksikössä:")
+    print("-"*210)
     print(" ")
-    print("-"*190)
-    print("Päivä".ljust(15),"Päivämäärä".ljust(15), "Kulutus vaihe 1 kWh".rjust(25), "Kulutus vaihe 2 kWh".rjust(25), "Kulutus vaihe 3 kWh".rjust(25), "Tuotanto vaihe 1 kWh".rjust(25), "Tuotanto vaihe 2 kWh".rjust(25), "Tuotanto vaihe 3 kWh".rjust(25))
-    print("-"*190)
+    print("-"*210)
+    print("Viikko/Päivä".ljust(17),"Päivämäärä".ljust(10), "Kulutus vaihe 1 kWh".rjust(25), "Kulutus vaihe 2 kWh".rjust(25), "Kulutus vaihe 3 kWh".rjust(25), "Tuotanto vaihe 1 kWh".rjust(25), "Tuotanto vaihe 2 kWh".rjust(25), "Tuotanto vaihe 3 kWh".rjust(25))
+    print("-"*210)
     # Tulostetaan rivit omiin sarakkeisiin.
-    for vp in viikonpaivat:
-        print(vp["Päivä"].ljust(15),
-              f"{vp["Aika"].strftime("%d.%m.%Y")}".ljust(15),
-              f"{vp['Kulutus_vaihe1']:.2f}".replace(".", ",").rjust(25),
-              f"{vp['Kulutus_vaihe2']:.2f}".replace(".", ",").rjust(25),
-              f"{vp['Kulutus_vaihe3']:.2f}".replace(".", ",").rjust(25),
-              f"{vp['Tuotanto_vaihe1']:.2f}".replace(".", ",").rjust(25),
-              f"{vp['Tuotanto_vaihe2']:.2f}".replace(".", ",").rjust(25),
-              f"{vp['Tuotanto_vaihe3']:.2f}".replace(".", ",").rjust(25))
-    print("-"*190)
+    print("-"*210)
+    for paiva in Paivamaara_data:
+            nykyinen_viikko = paiva["Viikko"]
+            if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
+                print("-"*210)
+
+            print(f"{paiva['Viikko'].ljust(5)}".removeprefix("vko"),
+                f"{paiva['Päivä'].ljust(14)}",
+                f"{paiva['Aika'].strftime('%d.%m.%Y')}".ljust(10),
+                f"{paiva['Kulutus_vaihe1']:.2f}".replace(".", ",").rjust(25),
+                f"{paiva['Kulutus_vaihe2']:.2f}".replace(".", ",").rjust(25),
+                f"{paiva['Kulutus_vaihe3']:.2f}".replace(".", ",").rjust(25),
+                f"{paiva['Tuotanto_vaihe1']:.2f}".replace(".", ",").rjust(25),
+                f"{paiva['Tuotanto_vaihe2']:.2f}".replace(".", ",").rjust(25),
+                f"{paiva['Tuotanto_vaihe3']:.2f}".replace(".", ",").rjust(25))
+            edellinen_viikko = nykyinen_viikko
+    print("-"*210)
     
 def main():
     '''Pääohjelma.'''
     tiedostolista = luetiedostot()
     tunti_lista = kasittele_Viikkodata(tiedostolista)
     paivakohtaiset_tulokset = paivalaskut(tunti_lista, tiedostolista)
-    print(paivakohtaiset_tulokset)
-    #viikonpaivat = paivalaskut(tunti_lista)
-
-    #tulosta_viikko42(viikonpaivat)
+    tulosta_viikot(paivakohtaiset_tulokset)
     
 
 if __name__ == "__main__":
