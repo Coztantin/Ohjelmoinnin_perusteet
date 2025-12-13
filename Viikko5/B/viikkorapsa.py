@@ -121,6 +121,8 @@ def tulosta_viikot(Paivamaara_data) -> None:
     print("-"*210)
     # Tulostetaan rivit omiin sarakkeisiin.
     print("-"*210)
+
+    #Jotta saadaan viikot eroteltua, tarkistetaan edellinen viikko ja verrataan sitä nykyiseen.
     for paiva in Paivamaara_data:
             nykyinen_viikko = paiva["Viikko"]
             if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
@@ -135,15 +137,78 @@ def tulosta_viikot(Paivamaara_data) -> None:
                 f"{paiva['Tuotanto_vaihe1']:.2f}".replace(".", ",").rjust(25),
                 f"{paiva['Tuotanto_vaihe2']:.2f}".replace(".", ",").rjust(25),
                 f"{paiva['Tuotanto_vaihe3']:.2f}".replace(".", ",").rjust(25))
-            edellinen_viikko = nykyinen_viikko
+            edellinen_viikko = nykyinen_viikko # Päivitetään edellinen viikko.
     print("-"*210)
+
+def rapsan_luonti(paivakohtaiset_tulokset) -> str:
+    '''Luo raportin sisällön yhtenä stringinä. Eikö tähän löydy parempaa tapaa?'''
+
+    rapsa = ""
+    edellinen_viikko = None
+
+    rapsa += ("-"*210 + "\n")
+    rapsa += "Viikkojen sähkönkulutus ja -tuotanto kWh-yksikössä:\n"
+    rapsa += ("-"*210 + "\n")
+    rapsa += ("-"*210 + "\n")
+    rapsa += ("Viikko/Päivä".ljust(17) + "Päivämäärä".ljust(10) + "Kulutus vaihe 1 kWh".rjust(25) + "Kulutus vaihe 2 kWh".rjust(25) + "Kulutus vaihe 3 kWh".rjust(25) + "Tuotanto vaihe 1 kWh".rjust(25) + "Tuotanto vaihe 2 kWh".rjust(25) + "Tuotanto vaihe 3 kWh".rjust(25) + "\n")
+    rapsa += ("-"*210 + "\n")
+
+    for paiva in paivakohtaiset_tulokset:
+        nykyinen_viikko = paiva["Viikko"]
+        if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
+            rapsa += ("-"*210 + "\n")
+
+        rapsa +=    f"{paiva['Viikko'].removeprefix('vko').ljust(5)}" \
+                    f"{paiva['Päivä'].ljust(14)}" \
+                    f"{paiva['Aika'].strftime('%d.%m.%Y').ljust(10)}" \
+                    f"{f'{paiva['Kulutus_vaihe1']:.2f}'.replace(".", ",").rjust(25)}" \
+                    f"{f'{paiva['Kulutus_vaihe2']:.2f}'.replace(".", ",").rjust(25)}" \
+                    f"{f'{paiva['Kulutus_vaihe3']:.2f}'.replace(".", ",").rjust(25)}" \
+                    f"{f'{paiva['Tuotanto_vaihe1']:.2f}'.replace(".", ",").rjust(25)}" \
+                    f"{f'{paiva['Tuotanto_vaihe2']:.2f}'.replace(".", ",").rjust(25)}" \
+                    f"{f'{paiva['Tuotanto_vaihe3']:.2f}'.replace(".", ",").rjust(25)}\n"
     
+        edellinen_viikko = nykyinen_viikko
+    rapsa += ("-"*210 + "\n")
+    return rapsa
+
+def luo_txt_tiedosto(rapsa) -> None:
+    '''Luo raportin tekstitiedostoon Raporttipinkka kansioon.'''
+    nyt = datetime.now()
+    tiedoston_nimi = f"Raporttipinkka/{nyt.strftime('%H-%d-%m')}_viikkorapsa.txt"
+
+    with open(tiedoston_nimi, "w", encoding="utf-8") as f:
+        f.write(rapsa)
+    print(f"Raportti luotu tiedostoon: {tiedoston_nimi}")
+
+
+def kysy_raportti(rapsa: str) -> None:
+    while True:
+        paatos = input("Haluatko luoda raportin tekstitiedostoon? (k/e): ")
+
+        if paatos.lower() in ["k", "kyllä","y","yes"]:
+            print("No mää luon...")
+            luo_txt_tiedosto(rapsa)
+            break # Poistutaan silmukasta tiedoston luonnin jälkeen.
+        elif paatos.lower() in ["e", "ei","n","no"]:
+            print("No ei sitten.")
+            print("Raporttia ei luotu tiedostoon.")
+            break # Poistutaan silmukasta ilman tiedoston luontia.
+        else:
+            print("Virheellinen syöte. Koita ny edes. Ei rapsaa sulle.")
+        #Silmukka jatkuu, kunnes saadaan kelvollinen syöte.
+
 def main():
     '''Pääohjelma.'''
     tiedostolista = luetiedostot()
     tunti_lista = kasittele_Viikkodata(tiedostolista)
     paivakohtaiset_tulokset = paivalaskut(tunti_lista, tiedostolista)
     tulosta_viikot(paivakohtaiset_tulokset)
+    rapsa = rapsan_luonti(paivakohtaiset_tulokset)
+    kysy_raportti(rapsa)
+    
+
+
     
 
 if __name__ == "__main__":
