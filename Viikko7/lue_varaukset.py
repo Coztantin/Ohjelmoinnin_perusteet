@@ -9,6 +9,14 @@
 from datetime import datetime
 
 def muunna_varaustiedot(varaus: list) -> list:
+    '''
+    Docstring for muunna_varaustiedot
+    
+    :param varaus: Description
+    :type varaus: list
+    :return: Description
+    :rtype: list[Any]
+    '''
     muutettu_varaus = []
     muutettu_varaus.append(int(varaus[0]))
     muutettu_varaus.append(varaus[1])
@@ -24,24 +32,26 @@ def muunna_varaustiedot(varaus: list) -> list:
     return muutettu_varaus
 
 def muunna_sanakirjaksi(varaukset: list) -> dict:
+    '''Muuttaa varaukset sanakirjaksi'''
     varaus_sanakirja = {}
     for varaus in varaukset[1:]:
         varaus_sanakirja[varaus[0]] = {
-            "nimi": varaus[1],
-            "sähköposti": varaus[2],
-            "puhelin": varaus[3],
-            "varauksenPvm": varaus[4],
-            "varauksenKlo": varaus[5],
-            "varauksenKesto": varaus[6],
-            "hinta": varaus[7],
-            "varausVahvistettu": varaus[8],
-            "varattuTila": varaus[9],
-            "varausLuotu": varaus[10]
+            "Nimi": varaus[1],
+            "Sähköposti": varaus[2],
+            "Puhelin": varaus[3],
+            "Varauksen Pvm": varaus[4],
+            "Varauksen Klo": varaus[5],
+            "Varauksen Kesto": varaus[6],
+            "Hinta": varaus[7],
+            "Varaus Vahvistettu": varaus[8],
+            "Varattu Tila": varaus[9],
+            "Varaus Luotu": varaus[10]
         }
     return varaus_sanakirja
 
 
 def hae_varaukset(varaustiedosto: str) -> list:
+    '''Hakee varaukset tiedostosta ja muuntaa ne listaksi, jossa jokainen varaus on listana. Tämän jälkeen kutsuta'''
     varaukset = []
     varaukset.append(["varausId", "nimi", "sähköposti", "puhelin", "varauksenPvm", "varauksenKlo", "varauksenKesto", "hinta", "varausVahvistettu", "varattuTila", "varausLuotu"])
     with open(varaustiedosto, "r", encoding="utf-8") as f:
@@ -49,13 +59,16 @@ def hae_varaukset(varaustiedosto: str) -> list:
             varaus = varaus.strip()
             varaustiedot = varaus.split('|')
             varaukset.append(muunna_varaustiedot(varaustiedot))
+    muunna_sanakirjaksi(varaukset)
     return varaukset
 
-def vahvistetut_varaukset(varaukset: list):
-    for varaus in varaukset[1:]:
-        if(varaus[8]):
-            print(f"- {varaus[1]}, {varaus[9]}, {varaus[4].strftime('%d.%m.%Y')} klo {varaus[5].strftime('%H.%M')}")
+def vahvistetut_varaukset(varaukset: dict) -> None:
+    '''Käy läpi varaukset ja tulostaa vahvistetut varaukset'''
 
+    print("Vahvistetut varaukset:")
+    for varaus in varaukset.keys(): #käydään läpi sanakirjan avaimet
+        if(varaukset[varaus]["Varaus Vahvistettu"]) == True: #jos varaus on vahvistettu
+            print(f"- {varaukset[varaus]['Nimi']}, {varaukset[varaus]['Varattu Tila']}, {varaukset[varaus]['Varauksen Pvm'].strftime('%d.%m.%Y')} klo {varaukset[varaus]['Varauksen Klo'].strftime('%H.%M')}")
     print()
 
 def pitkat_varaukset(varaukset: list):
@@ -99,7 +112,7 @@ def varausten_kokonaistulot(varaukset: list):
 def main():
     varaukset = hae_varaukset("varaukset.txt")
     varaukset_sanakirjana = muunna_sanakirjaksi(varaukset)
-    print(varaukset_sanakirjana)
+    print (vahvistetut_varaukset(varaukset_sanakirjana))
     #print("1) Vahvistetut varaukset")
     #vahvistetut_varaukset(varaukset)
     #print("2) Pitkät varaukset (≥ 3 h)")
