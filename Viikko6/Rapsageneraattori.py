@@ -7,9 +7,11 @@ Tehtävänä laatia ohjelma, joka lukee csv-tiedostot ja tulostaa näistä rapor
     - vaiheittaisen sähköntuotannon (1-3 vaihe) kWh-yksikössä
 '''
 from datetime import datetime
+from datetime import timezone
 import csv
 import glob
 from typing import List, Dict
+from typing import Dict, Any
 from collections import defaultdict
 
 tunti_lista= []
@@ -18,6 +20,7 @@ tiedostot = []
 tiedostolista = []
 viikko = []
 paivaobjekti_lista = []
+Yksi_paiva = {}
 
 viikonpaivat_kaantaja_en_fi = {
     "Monday": "Maanantai",
@@ -28,20 +31,37 @@ viikonpaivat_kaantaja_en_fi = {
     "Saturday": "Lauantai",
     "Sunday": "Sunnuntai"
 }
+kuukaudet_kaantaja_en_fi = {
+    "January": "Tammikuu",
+    "February": "Helmikuu",
+    "March": "Maaliskuu",
+    "April": "Huhtikuu",
+    "May": "Toukokuu",
+    "June": "Kesäkuu",
+    "July": "Heinäkuu",
+    "August": "Elokuu",
+    "September": "Syyskuu",
+    "October": "Lokakuu",
+    "November": "Marraskuu",
+    "December": "Joulukuu"
+}
 
 def luetiedostot() -> list:
     '''Hakee kaikki csv-tiedostot annetusta kansiosta.'''
     print(" ")
-    print("Luetaan kansiosta viikko*.csv tiedostot.")
+    print("Luetaan kansiosta *.csv tiedostot.")
 
-    tiedostolista = sorted(glob.glob("viikko*.csv"))
+    tiedostolista = sorted(glob.glob("*.csv"))
     print("Kansiossa olevat tiedostot:", tiedostolista)
     return tiedostolista
     
-def kasittele_Viikkodata(tiedostolista) -> List[Dict]:
-    '''Lukee tiedostot ja muodostaa kaikista listan arvoista sanakirjoina.'''
+def kasittele_Viikkodata(tiedostolista:list[str]) -> Dict[datetime,Dict[str,Any]]:
+    '''Lukee tiedostot ja muodostaa kaikista listan arvoista sanakirjoina. Koska kyseessä on suhteellisen pieni tiedostokoko (alle 500KB), vaikka siihen lisättäisiin viimeinen
+    kuukausi dataa, voidaan kaikki tiedot lukea kerralla muistiin. Tekoälyn mukaan, jos tiedostokoko olisi yli 10-50MB TAI yli 100 000 riviä, tulisi harkita eri lähestymistapaa.
+    Turha lähtee pilkkomaan.'''
 
-    tunti_lista = []
+    kaikki_tunnit = {}
+    
     for tiedosto in tiedostolista:
         print(f"Käsitellään tiedostoa:{tiedosto}")
 
@@ -50,58 +70,56 @@ def kasittele_Viikkodata(tiedostolista) -> List[Dict]:
             for rivi in rivit:
 
                 rivi= rivi.strip().split(";")
-                ajankohta_obj = datetime.strptime(rivi[0], "%Y-%m-%dT%H:%M:%S") # Muutetaan aikaleima objektiksi
-                vko_nro = f"vko{ajankohta_obj.isocalendar().week}"
-                viikonpaiva = ajankohta_obj.strftime("%A")
-                #Luodaan sanakirja jokaiselle ajalle, vaiheelle ja muokataan Wh --> kWh.
-                tunti_arvot = {
+                ajankohta_obj = datetime.strptime(rivi[0], "%Y-%m-%dT%H:%M:%S.%f%z") # Muutetaan aikaleima objektiksi
+                vko_nro = ajankohta_obj.isocalendar().week
+                kk_nro = ajankohta_obj.month
+                viikonpaiva = viikonpaivat_kaantaja_en_fi[ajankohta_obj.strftime("%A")]
+                pvm_tunti = ajankohta_obj
+                #Luodaan sanakirja jokaiselle ajalle, vaiheelle ja muokataan se sopivaksi.
+                kaikki_tunnit[pvm_tunti] = {
+                    "Vuosi": ajankohta_obj.year,
+                    "Kuukausi": kk_nro,
                     "Viikko": vko_nro,
                     "Päivä": viikonpaiva,
-                    "Aika": ajankohta_obj,
-                    "Kulutus_vaihe1": float(rivi[1]) / 1000, 
-                    "Kulutus_vaihe2": float(rivi[2]) / 1000,
-                    "Kulutus_vaihe3": float(rivi[3]) / 1000,
-                    "Tuotanto_vaihe1": float(rivi[4]) / 1000,
-                    "Tuotanto_vaihe2": float(rivi[5]) / 1000,
-                    "Tuotanto_vaihe3": float(rivi[6]) / 1000
+                    "Kulutus nettona (kWh)": float(rivi[1].replace(",", ".")),
+                    "Tuotanto nettona (kWh)": float(rivi[2].replace(",", ".")),
+                    "Vuorokauden keskilämpötila": str(rivi[3]) + " °C"
                 }
-                tunti_lista.append(tunti_arvot)
-    return tunti_lista
+    return kaikki_tunnit
 
-def paivalaskut(tunti_lista: List[Dict], tiedostolista: List[str]) -> List[Dict]:
+def paivalaskut(kaikki_tunnit: Dict[datetime,Dict[str,Any]]):
     '''Antaa päiville päivämäärät, tekee viikkolistan ja summaa tuntien arvot päiville.'''
 
-    #Tehdään yhdelle vuorokaudelle snakirja, josta tehdään sitten lista eri päivämäärille.
+    #Tehdään yhdelle vuorokaudelle sanakirja, josta tehdään sitten lista eri päivämäärille.
     Yksi_paiva= defaultdict(lambda: {
+        "Vuosi": "",
+        "Kuukausi": "",
         "Viikko": "",
         "Päivä": "",
         "Aika": "",
-        "Kulutus_vaihe1": 0.0,
-        "Kulutus_vaihe2": 0.0,
-        "Kulutus_vaihe3": 0.0,
-        "Tuotanto_vaihe1": 0.0,
-        "Tuotanto_vaihe2": 0.0,
-        "Tuotanto_vaihe3": 0.0
+        "Kulutus nettona (kWh)": 0.0,
+        "Tuotanto nettona (kWh)": 0.0,
+        "Vuorokauden keskilämpötila": None
         })
     
     #Käydään tunnit läpi ja tehdään päivämäärä sanakirja, ja lisätään arvot oikeille päiville.
-    for tunti in tunti_lista:
+    for paivaobj, arvot in kaikki_tunnit.items():
       
-        pvm = tunti["Aika"].date()
-        vko_nimi = f"vko{tunti['Aika'].isocalendar().week}"
+        pvm = paivaobj.date()
+        vko_nimi = f"vko{pvm.isocalendar().week}"
 
-        paivaobj = Yksi_paiva[pvm]
-        paivaobj["Viikko"] = vko_nimi
-        paivaobj["Päivä"] = viikonpaivat_kaantaja_en_fi[tunti["Aika"].strftime("%A")]
-        paivaobj["Aika"] = pvm
-        paivaobj["Kulutus_vaihe1"] += tunti["Kulutus_vaihe1"]
-        paivaobj["Kulutus_vaihe2"] += tunti["Kulutus_vaihe2"]
-        paivaobj["Kulutus_vaihe3"] += tunti["Kulutus_vaihe3"]
-        paivaobj["Tuotanto_vaihe1"] += tunti["Tuotanto_vaihe1"]
-        paivaobj["Tuotanto_vaihe2"] += tunti["Tuotanto_vaihe2"]
-        paivaobj["Tuotanto_vaihe3"] += tunti["Tuotanto_vaihe3"]    
+        paiva = Yksi_paiva[pvm]
+        paiva["Vuosi"] = pvm.year
+        paiva["Kuukausi"] = pvm.month
+        paiva["Viikko"] = vko_nimi
+        paiva["Päivä"] = viikonpaivat_kaantaja_en_fi[paivaobj.strftime("%A")]
+        paiva["Aika"] = pvm.strftime("%d.%m.%Y")
+        paiva["Kulutus nettona (kWh)"] += arvot["Kulutus nettona (kWh)"]
+        paiva["Tuotanto nettona (kWh)"] += arvot["Tuotanto nettona (kWh)"]
+        if paiva["Vuorokauden keskilämpötila"] is None:
+            paiva["Vuorokauden keskilämpötila"] = arvot["Vuorokauden keskilämpötila"]
     
-    return list(Yksi_paiva.values())
+    return dict(Yksi_paiva)
 
 def tulosta_viikot(Paivamaara_data) -> None:
     '''Tulostaa viikonpäivien raportin konsoliin. Erottelee viikot viivalla.'''
@@ -194,14 +212,43 @@ def kysy_raportti(rapsa: str) -> None:
             print("Virheellinen syöte. Koita ny edes. Ei rapsaa sulle.")
         #Silmukka jatkuu, kunnes saadaan kelvollinen syöte.
 
+def Mainos(Mainos:str) -> None:
+    '''Mainokset pääsi mystisesti tähän ohjelmaan.'''
+
+    premium_mainos = str("PREMIUM-JÄSENYYS: VAIN 9,99 €kk!")
+    premium_mainos_raamit = str("#")
+    pisin_teksti = str( "No ei hätää, me autamme sinua tässä asiassa! Nyt voit saada selville sähkönkulutuksesi ja -tuotantosi päivä-, viikko-, ja kuukausitasolla helposti ja nopeasti!")
+    print(" ")
+    print("-"*len(pisin_teksti))
+    print("Tervetuloa AurinkoSähköPaneelirapsageneraattori Palveluun!")
+    print("Tulitko hakemaan viikkoraporttia sähkönkulutuksesta ja -tuotannosta? Vai tulitko vertailemaan päivittäistä sähkönkulutusta ja -tuotantoa?")
+    print("Etkö tiedä mikä kuluttaa hirveästi sähköä? Puolisosi on taas torkkunut sähköpeiton alla? Lapset pelaa yötämyöhään pleikkarilla?")
+    print(pisin_teksti)
+    print("Maksamalla premium-jäsenyyden saat vielä tarkemmat raportit ja analyysit sähkönkulutuksestasi ja -tuotannostasi! Nyt voit selvittää mihin sähkö oikein kuluu!")
+    print("")
+    print('#'*(len(premium_mainos + premium_mainos_raamit*2)+4))
+    print('#' + ' '*(len(premium_mainos + premium_mainos_raamit*2)+2) + '#')
+    print(f"#  {premium_mainos}  #")
+    print("#" + ' '*(len(premium_mainos + premium_mainos_raamit*2)+2) + '#')
+    print('#'*(len(premium_mainos + premium_mainos_raamit*2)+4))
+    print(" ")
+    print("-"*len(pisin_teksti))
+    
 def main():
     '''Pääohjelma.'''
+    #Mainos("Mainos")
     tiedostolista = luetiedostot()
-    tunti_lista = kasittele_Viikkodata(tiedostolista)
-    paivakohtaiset_tulokset = paivalaskut(tunti_lista, tiedostolista)
-    tulosta_viikot(paivakohtaiset_tulokset)
-    rapsa = rapsan_luonti(paivakohtaiset_tulokset)
-    kysy_raportti(rapsa)
+    tunti_arvot = kasittele_Viikkodata(tiedostolista)
+    paivakohtaiset_tulokset = paivalaskut(tunti_arvot)
+    for i, (k, v) in enumerate(paivakohtaiset_tulokset.items()):
+        print(k, v)
+        if i == 3:
+            break
+
+    
+    #tulosta_viikot(paivakohtaiset_tulokset)
+    #rapsa = rapsan_luonti(paivakohtaiset_tulokset)
+    #kysy_raportti(rapsa)
     
 if __name__ == "__main__":
     main()
