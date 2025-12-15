@@ -134,7 +134,7 @@ def varausten_kokonaistulot(varaukset: Dict[int, Dict[str, Any]]) -> None:
     print()
 
 def main():
-    '''pääohjelma'''
+    '''pääohjelma, joka kutsuu muita funktioita'''
     varaukset = hae_varaukset("varaukset.txt")
     varaukset_sanakirjana = muunna_sanakirjaksi(varaukset)
     print()
