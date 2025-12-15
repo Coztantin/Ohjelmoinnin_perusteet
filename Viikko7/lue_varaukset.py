@@ -88,17 +88,18 @@ def varausten_vahvistusstatus(varaukset: dict) -> None:
         print(f"- {varaukset[varaus]['Nimi']} → {status}.")
     print()
 
-def varausten_lkm(varaukset: list):
+def varausten_lkm(varaukset: dict) -> None:
+    print("Yhteenveto vahvistuksista:")
     vahvistetutVaraukset = 0
     eiVahvistetutVaraukset = 0
-    for varaus in varaukset[1:]:
-        if(varaus[8]):
+    for varaus in varaukset.keys():
+        if(varaukset[varaus]["Varaus Vahvistettu"]) == True:
             vahvistetutVaraukset += 1
         else:
             eiVahvistetutVaraukset += 1
 
     print(f"- Vahvistettuja varauksia: {vahvistetutVaraukset} kpl")
-    print(f"- Ei-vahvistettuja varauksia: {eiVahvistetutVaraukset} kpl")
+    print(f"- Ei vahvistettuja varauksia: {eiVahvistetutVaraukset} kpl")
     print()
 
 def varausten_kokonaistulot(varaukset: list):
@@ -117,8 +118,7 @@ def main():
     vahvistetut_varaukset(varaukset_sanakirjana)
     pitkat_varaukset(varaukset_sanakirjana)
     varausten_vahvistusstatus(varaukset_sanakirjana)
-    #print("4) Yhteenveto vahvistuksista")
-    #varausten_lkm(varaukset)
+    varausten_lkm(varaukset_sanakirjana)
     #print("5) Vahvistettujen varausten kokonaistulot")
     #varausten_kokonaistulot(varaukset)
 
