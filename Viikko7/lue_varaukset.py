@@ -80,13 +80,12 @@ def pitkat_varaukset(varaukset: dict) -> None:
 
     print()
 
-def varausten_vahvistusstatus(varaukset: list):
-    for varaus in varaukset[1:]:
-        if(varaus[8]):
-            print(f"{varaus[1]} → Vahvistettu")
-        else:
-            print(f"{varaus[1]} → EI vahvistettu")
-
+def varausten_vahvistusstatus(varaukset: dict) -> None:
+    '''Käy läpi varaukset ja tulostaa jokaisen varauksen vahvistusstatuksen'''
+    print("Varausten vahvistusstatus:")
+    for varaus in varaukset.keys():
+        status = "Vahvistettu" if varaukset[varaus]["Varaus Vahvistettu"] else "EI Vahvistettu"
+        print(f"- {varaukset[varaus]['Nimi']} → {status}.")
     print()
 
 def varausten_lkm(varaukset: list):
@@ -114,10 +113,10 @@ def varausten_kokonaistulot(varaukset: list):
 def main():
     varaukset = hae_varaukset("varaukset.txt")
     varaukset_sanakirjana = muunna_sanakirjaksi(varaukset)
+    print()
     vahvistetut_varaukset(varaukset_sanakirjana)
     pitkat_varaukset(varaukset_sanakirjana)
-    #print("3) Varausten vahvistusstatus")
-    #varausten_vahvistusstatus(varaukset)
+    varausten_vahvistusstatus(varaukset_sanakirjana)
     #print("4) Yhteenveto vahvistuksista")
     #varausten_lkm(varaukset)
     #print("5) Vahvistettujen varausten kokonaistulot")
