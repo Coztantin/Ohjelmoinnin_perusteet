@@ -71,10 +71,12 @@ def vahvistetut_varaukset(varaukset: dict) -> None:
             print(f"- {varaukset[varaus]['Nimi']}, {varaukset[varaus]['Varattu Tila']}, {varaukset[varaus]['Varauksen Pvm'].strftime('%d.%m.%Y')} klo {varaukset[varaus]['Varauksen Klo'].strftime('%H.%M')}")
     print()
 
-def pitkat_varaukset(varaukset: list):
-    for varaus in varaukset[1:]:
-        if(varaus[6] >= 3):
-            print(f"- {varaus[1]}, {varaus[4].strftime('%d.%m.%Y')} klo {varaus[5].strftime('%H.%M')}, kesto {varaus[6]} h, {varaus[9]}")
+def pitkat_varaukset(varaukset: dict) -> None:
+    '''Vilkasee läpi varaukset ja tulostaa pitkät varaukset (yli 3 tuntia)'''
+    print("Pitkät varaukset (≥ 3 h):")
+    for varaus in varaukset.keys():
+        if(varaukset[varaus]["Varauksen Kesto"] >= 3):
+            print(f"- {varaukset[varaus]['Nimi']}, {varaukset[varaus]['Varauksen Pvm'].strftime('%d.%m.%Y')} klo {varaukset[varaus]['Varauksen Klo'].strftime('%H.%M')}, kesto: {varaukset[varaus]['Varauksen Kesto']} h, {varaukset[varaus]['Varattu Tila']}")
 
     print()
 
@@ -112,11 +114,8 @@ def varausten_kokonaistulot(varaukset: list):
 def main():
     varaukset = hae_varaukset("varaukset.txt")
     varaukset_sanakirjana = muunna_sanakirjaksi(varaukset)
-    print (vahvistetut_varaukset(varaukset_sanakirjana))
-    #print("1) Vahvistetut varaukset")
-    #vahvistetut_varaukset(varaukset)
-    #print("2) Pitkät varaukset (≥ 3 h)")
-    #pitkat_varaukset(varaukset)
+    vahvistetut_varaukset(varaukset_sanakirjana)
+    pitkat_varaukset(varaukset_sanakirjana)
     #print("3) Varausten vahvistusstatus")
     #varausten_vahvistusstatus(varaukset)
     #print("4) Yhteenveto vahvistuksista")
