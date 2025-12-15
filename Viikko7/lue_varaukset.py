@@ -23,6 +23,24 @@ def muunna_varaustiedot(varaus: list) -> list:
     muutettu_varaus.append(datetime.strptime(varaus[10], "%Y-%m-%d %H:%M:%S"))
     return muutettu_varaus
 
+def muunna_sanakirjaksi(varaukset: list) -> dict:
+    varaus_sanakirja = {}
+    for varaus in varaukset[1:]:
+        varaus_sanakirja[varaus[0]] = {
+            "nimi": varaus[1],
+            "sähköposti": varaus[2],
+            "puhelin": varaus[3],
+            "varauksenPvm": varaus[4],
+            "varauksenKlo": varaus[5],
+            "varauksenKesto": varaus[6],
+            "hinta": varaus[7],
+            "varausVahvistettu": varaus[8],
+            "varattuTila": varaus[9],
+            "varausLuotu": varaus[10]
+        }
+    return varaus_sanakirja
+
+
 def hae_varaukset(varaustiedosto: str) -> list:
     varaukset = []
     varaukset.append(["varausId", "nimi", "sähköposti", "puhelin", "varauksenPvm", "varauksenKlo", "varauksenKesto", "hinta", "varausVahvistettu", "varattuTila", "varausLuotu"])
@@ -80,16 +98,18 @@ def varausten_kokonaistulot(varaukset: list):
 
 def main():
     varaukset = hae_varaukset("varaukset.txt")
-    print("1) Vahvistetut varaukset")
-    vahvistetut_varaukset(varaukset)
-    print("2) Pitkät varaukset (≥ 3 h)")
-    pitkat_varaukset(varaukset)
-    print("3) Varausten vahvistusstatus")
-    varausten_vahvistusstatus(varaukset)
-    print("4) Yhteenveto vahvistuksista")
-    varausten_lkm(varaukset)
-    print("5) Vahvistettujen varausten kokonaistulot")
-    varausten_kokonaistulot(varaukset)
+    varaukset_sanakirjana = muunna_sanakirjaksi(varaukset)
+    print(varaukset_sanakirjana)
+    #print("1) Vahvistetut varaukset")
+    #vahvistetut_varaukset(varaukset)
+    #print("2) Pitkät varaukset (≥ 3 h)")
+    #pitkat_varaukset(varaukset)
+    #print("3) Varausten vahvistusstatus")
+    #varausten_vahvistusstatus(varaukset)
+    #print("4) Yhteenveto vahvistuksista")
+    #varausten_lkm(varaukset)
+    #print("5) Vahvistettujen varausten kokonaistulot")
+    #varausten_kokonaistulot(varaukset)
 
 if __name__ == "__main__":
     main()
