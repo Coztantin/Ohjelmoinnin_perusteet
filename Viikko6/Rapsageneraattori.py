@@ -23,6 +23,19 @@ viikko = []
 paivaobjekti_lista = []
 Yksi_paiva = {}
 
+#Määritetään sarakkeiden leveydet ja viivojen pituus
+Vuosi_W = 7
+Kuukausi_W = 10
+Viikko_W = 10
+Päivämäärä_W = 15
+Päivä_W = 15
+Klo_W = 6
+Kulutus_W = 30
+Tuotanto_W = 30
+Lämpötila_W = 33
+viivanpituus = Vuosi_W + Kuukausi_W + Viikko_W + Päivämäärä_W + Päivä_W + Klo_W + Kulutus_W + Tuotanto_W + Lämpötila_W
+viivat = str("-"*viivanpituus)
+
 viikonpaivat_kaantaja_en_fi = {
     "Monday": "Maanantai",
     "Tuesday": "Tiistai",
@@ -420,47 +433,38 @@ def tulosta_paiva(tunti_arvot: dict, paiva: date) -> None:
             )
     print("-"*viivojen_pituus)
 
-def rapsan_luonti(paivakohtaiset_tulokset) -> str:
-    '''Luo raportin sisällön yhtenä stringinä. Eikö tähän löydy parempaa tapaa?'''
+def The_MAIN_valikko(tunti_arvot: dict, paivadata: dict) -> None:
+    '''Päävalikon Päävalikko.'''
+    while True:
+        print(" ")
+        print("Tervettuloa RapsaRageGeneraattoriin!")
+        print("")
+        print("Mitä haluaisit tehdä tänään?")
+        print(" ")
+        print(" 1 - Tarkastele dataa konsolissa.")
+        print(" 2 - Luo raportti tekstitiedostoon mukautetusti.")
+        print(" 3 - Yhdistä kaikki kansiossa olevat *.csv tiedostot luettavaksi raportiksi ja tallenna raportti tekstitiedostoon.")
+        print(" 4 - Poistu ohjelmasta.")
 
-    rapsa = ""
-    edellinen_viikko = None
-
-    rapsa += ("-"*210 + "\n")
-    rapsa += "Viikkojen sähkönkulutus ja -tuotanto kWh-yksikössä:\n"
-    rapsa += ("-"*210 + "\n")
-    rapsa += ("-"*210 + "\n")
-    rapsa += ("Viikko/Päivä".ljust(17) + "Päivämäärä".ljust(10) + "Kulutus vaihe 1 kWh".rjust(25) + "Kulutus vaihe 2 kWh".rjust(25) + "Kulutus vaihe 3 kWh".rjust(25) + "Tuotanto vaihe 1 kWh".rjust(25) + "Tuotanto vaihe 2 kWh".rjust(25) + "Tuotanto vaihe 3 kWh".rjust(25) + "\n")
-    rapsa += ("-"*210 + "\n")
-
-    for paiva in paivakohtaiset_tulokset:
-        nykyinen_viikko = paiva["Viikko"]
-        if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
-            rapsa += ("-"*210 + "\n")
-
-        rapsa +=    f"{paiva['Viikko'].removeprefix('vko').ljust(5)}" \
-                    f"{paiva['Päivä'].ljust(14)}" \
-                    f"{paiva['Aika'].strftime('%d.%m.%Y').ljust(10)}" \
-                    f"{f'{paiva['Kulutus_vaihe1']:.2f}'.replace(".", ",").rjust(25)}" \
-                    f"{f'{paiva['Kulutus_vaihe2']:.2f}'.replace(".", ",").rjust(25)}" \
-                    f"{f'{paiva['Kulutus_vaihe3']:.2f}'.replace(".", ",").rjust(25)}" \
-                    f"{f'{paiva['Tuotanto_vaihe1']:.2f}'.replace(".", ",").rjust(25)}" \
-                    f"{f'{paiva['Tuotanto_vaihe2']:.2f}'.replace(".", ",").rjust(25)}" \
-                    f"{f'{paiva['Tuotanto_vaihe3']:.2f}'.replace(".", ",").rjust(25)}\n"
-    
-        edellinen_viikko = nykyinen_viikko
-    rapsa += ("-"*210 + "\n")
-    return rapsa
-
-def luo_txt_tiedosto(rapsa) -> None:
-    '''Luo raportin tekstitiedostoon Raporttipinkka kansioon.'''
-    nyt = datetime.now()
-    tiedoston_nimi = f"Raporttipinkka/{nyt.strftime('%H-%d-%m')}_viikkorapsa.txt"
-
-    with open(tiedoston_nimi, "w", encoding="utf-8") as f:
-        f.write(rapsa)
-    print(f"Raportti luotu tiedostoon: {tiedoston_nimi}")
-
+        valinta = input("Valintasi: ").strip().upper()
+        if valinta not in ["1", "2", "3", "4"]:
+            print("Pääsikö kissa näppäimistölle? Virheellinen valinta. Yritä uudelleen.")
+        if valinta == "1":
+            print("Valitsit vaihtoehdon 1: Tarkastele dataa konsolissa.")
+            paavalikko(tunti_arvot, paivadata)
+        if valinta == "2":
+            print("Valitsit vaihtoehdon 2: Luo raportti tekstitiedostoon mukautetusti.")
+            #luo_raportteja()
+        if valinta == "3":
+            print("Valitsit vaihtoehdon 3: Yhdistä kaikki kansiossa olevat *.csv tiedostot luettavaksi raportiksi ja tallenna raportti tekstitiedostoon.")
+            yhdista_ja_tallenna_raportti(paivadata, "Raporttipinkka/yhdistetty_raportti.txt")
+        if valinta == "4":
+            print("Varmaan missklikki, Haluatko varmasti lopettaa?")
+            varmistus = input("Vahvista lopetus (K/E): ").strip().upper()
+            if varmistus == "K":
+                print("Asia kunnossa, ohjelma suljetaan.")
+                return
+        
 def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
     '''Valikko käyttäjälle.'''
     input("\n Paina Enter jatkamiseksi...")
@@ -473,9 +477,10 @@ def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
         print("3 - Tulosta haluamasi kuluvan vuoden kuukauden yhteenveto konsoliin")
         print("4 - Tulosta haluamasi kuluvan vuoden viikon yhteenveto konsoliin")
         print("5 - Tulosta haluamasi päivän tiedot konsoliin tunneittain, PREMIUM-JÄSENILLE")
-        print("6 - Poistu ohjelmasta")
+        print("6 - Takaisin päävalikkoon")
+        print("7 - Poistu ohjelmasta")
         valinta = input("Valintasi: ").strip().upper()
-        if valinta not in ["1", "2", "3", "4", "5", "6"]:
+        if valinta not in ["1", "2", "3", "4", "5", "6", "7"]:
             print("Virheellinen valinta. Yritä uudelleen.")
 
         if valinta == "1":
@@ -537,11 +542,14 @@ def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
                 time.sleep(1)
                 tulosta_paiva(tunti_arvot, paiva)
                 input("\n Paina Enter jatkamiseksi...")
-
         if valinta == "6":
+            print("Palataan päävalikkoon.")
+            return
+
+        if valinta == "7":
             print("Jaaha, Rahaa ja lämpöä on on niin paljon, että voi jakaa harakoillekkin. Ei siin mittää sit... Palaillaan toiste!")
             print("Ohjelma suljetaan.")
-            return
+            break
 
 def paavalikko_2_vuosi() -> int:
     '''Päävalikon alivalikko vuoden valintaan.'''
@@ -602,6 +610,109 @@ def paavalikko_5_paiva() -> Optional[date]:
         except ValueError:
             print("Virheellinen päivämäärä. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
 
+def raportti_pohja(Rapsa_otsikko: str) -> list[str]:
+    '''Muodostaa raportin otsikot ja viivat.'''
+    return [
+        viivat,
+        Rapsa_otsikko,
+        viivat,
+        (
+            f"{'Vuosi':<{Vuosi_W}}"
+            f"{'Kuukausi':<{Kuukausi_W}}"
+            f"{'Viikko':<{Viikko_W}}"
+            f"{'Päivämäärä':<{Päivämäärä_W}}"
+            f"{'Päivä':<{Päivä_W}}"
+            f"{'Kulutus nettona (kWh)':>{Kulutus_W}}"
+            f"{'Tuotanto nettona (kWh)':>{Tuotanto_W}}"
+            f"{'Vuorokauden keskilämpötila':>{Lämpötila_W-3}}"
+        ),
+        viivat
+    ]
+           
+def muodosta_paivarivit(paivadata: dict) -> list[str]:
+    
+    rivit = []
+    for paiva in sorted(paivadata.values(), key=lambda x: datetime.strptime(x['Aika'], "%d.%m.%Y")):
+        rivit.append(
+            f"{paiva['Vuosi']:<{Vuosi_W}}"+
+            f"{paiva['Kuukausi']:<{Kuukausi_W}}"+
+            f"{paiva['Viikko'].removeprefix('vko'):<{Viikko_W}}"+
+            f"{paiva['Aika']:<{Päivämäärä_W}}"+
+            f"{paiva['Päivä']:<{Päivä_W}}"+
+            (f"{paiva['Kulutus nettona (kWh)']:>{Kulutus_W}.2f}").replace('.', ',')+
+            (f"{paiva['Tuotanto nettona (kWh)']:>{Tuotanto_W}.2f}").replace('.', ',')+
+            f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W-3}} °C"
+        )
+
+    return rivit
+
+def luo_txt_tiedosto(sisalto: str, nimi: str) -> None:
+    '''Luo raportin tekstitiedostoon Raporttipinkka kansioon.'''
+    tiedoston_nimi = f"Raporttipinkka/{nimi}.txt"
+    raportti: list[str] = []
+
+    raportti.extend(
+        raportti_pohja("Sähkönkulutus ja -tuotanto päiväkohtaisesti")
+    )
+
+    raportti.extend(
+        muodosta_paivarivit(paivadata)
+    )
+
+    raportti.append(viivat)
+
+
+    with open(tiedoston_nimi, "w", encoding="utf-8") as f:
+        f.write("\n".join(raportti))
+
+
+    print(f"Raportti luotu tiedostoon: {tiedoston_nimi}")
+
+
+def yhdista_ja_tallenna_raportti(paivadata: dict, tiedoston_nimi: str) -> None:
+    '''Luo yksinkertaisen päiväkohtaisen raportin tekstitiedostoon.'''
+
+    rivit = []
+
+    # Otsikot
+    rivit.append(viivat)
+    rivit.append("Sähkönkulutus ja -tuotanto päiväkohtaisesti")
+    rivit.append(viivat)
+    rivit.append(
+        f"{'Vuosi':<{Vuosi_W}}"
+        f"{'Kuukausi':<{Kuukausi_W}}"
+        f"{'Viikko':<{Viikko_W}}"
+        f"{'Päivämäärä':<{Päivämäärä_W}}"
+        f"{'Päivä':<{Päivä_W}}"
+        f"{'Kulutus nettona (kWh)':>{Kulutus_W}}"
+        f"{'Tuotanto nettona (kWh)':>{Tuotanto_W}}"
+        f"{'Vuorokauden keskilämpötila':>{Lämpötila_W-3}}"
+    )
+    rivit.append(viivat)
+
+    # Sisältö
+    for pvm, paiva in sorted(paivadata.items()):
+        rivit.append(
+            f"{paiva['Vuosi']:<{Vuosi_W}}"
+            f"{paiva['Kuukausi']:<{Kuukausi_W}}"
+            f"{paiva['Viikko'].removeprefix('vko'):<{Viikko_W}}"
+            f"{paiva['Aika']:<{Päivämäärä_W}}" +
+            (f"{paiva['Päivä']:<{Päivä_W}}").replace('.', ',') +
+            (f"{paiva['Kulutus nettona (kWh)']:>{Kulutus_W}.2f}").replace('.', ',') +
+            (f"{paiva['Tuotanto nettona (kWh)']:>{Tuotanto_W}.2f}").replace('.', ',') +
+            f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W-3}} °C"
+        )
+
+    rivit.append(viivat)
+
+    # Kirjoitus tiedostoon
+    with open(tiedoston_nimi, "w", encoding="utf-8") as f:
+        f.write("\n".join(rivit))
+
+    print(f"Raportti luotu tiedostoon: {tiedoston_nimi}")
+
+   
+    
 def Mainos() -> None:
     '''Mainokset pääsi mystisesti tähän ohjelmaan.'''
 
@@ -628,13 +739,10 @@ def Mainos() -> None:
 def main():
     '''Pääohjelma.'''
     Mainos()
-    tiedostolista = luetiedostot()
-    tunti_arvot = kasittele_Viikkodata(tiedostolista)
-    paivakohtaiset_tulokset = paivalaskut(tunti_arvot)
-    paavalikko(tunti_arvot, paivakohtaiset_tulokset)
-    # tama on valmis  # tulosta_kaikki(paivakohtaiset_tulokset)
-    #rapsa = rapsan_luonti(paivakohtaiset_tulokset)
-    #kysy_raportti(rapsa)
+    tunti_arvot = kasittele_Viikkodata(luetiedostot())
+    paivadata = paivalaskut(tunti_arvot)
+    The_MAIN_valikko(tunti_arvot, paivadata)
+    
     
 if __name__ == "__main__":
     main()
