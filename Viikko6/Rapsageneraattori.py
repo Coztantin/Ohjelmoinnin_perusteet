@@ -6,11 +6,12 @@ Tehtävänä laatia ohjelma, joka lukee csv-tiedostot ja tulostaa näistä rapor
     - vaiheittaisen sähkönkulutuksen (1-3 vaihe) kWh-yksikössä
     - vaiheittaisen sähköntuotannon (1-3 vaihe) kWh-yksikössä
 '''
-from datetime import datetime
+from datetime import date, datetime
 from datetime import timezone
+import time
 import csv
 import glob
-from typing import List, Dict
+from typing import List, Dict, Optional
 from typing import Dict, Any
 from collections import defaultdict
 
@@ -83,7 +84,7 @@ def kasittele_Viikkodata(tiedostolista:list[str]) -> Dict[datetime,Dict[str,Any]
                     "Päivä": viikonpaiva,
                     "Kulutus nettona (kWh)": float(rivi[1].replace(",", ".")),
                     "Tuotanto nettona (kWh)": float(rivi[2].replace(",", ".")),
-                    "Vuorokauden keskilämpötila": str(rivi[3]) + " °C"
+                    "Vuorokauden keskilämpötila": float(rivi[3].replace(",", "."))
                 }
     return kaikki_tunnit
 
@@ -121,7 +122,7 @@ def paivalaskut(kaikki_tunnit: Dict[datetime,Dict[str,Any]]):
     
     return dict(Yksi_paiva)
 
-def tulosta_kaikki(Yksi_paiva) -> None:
+def tulosta_kaikki(Yksi_paiva: dict) -> None:
     '''Tulostaa tiedostojen päivät konsoliin. Erottelee viikot viivalla.'''
     edellinen_viikko = None
     Vuosi_W = 7
@@ -153,12 +154,74 @@ def tulosta_kaikki(Yksi_paiva) -> None:
         )
     print("-"*viivojen_pituus)
     print("-"*viivojen_pituus)
-    
-    # Tulostetaan rivit omiin sarakkeisiin.
-    # Jotta saadaan viikot eroteltua, tarkistetaan edellinen viikko ja verrataan sitä nykyiseen.
 
     for paiva in Yksi_paiva.values():
         nykyinen_viikko = paiva["Viikko"]
+        if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
+            print("-"*viivojen_pituus)
+
+        print(
+            f"{paiva['Vuosi']:<{Vuosi_W}}"+
+            f"{paiva['Kuukausi']:<{Kuukausi_W}}"+
+            f"{paiva['Viikko'].removeprefix('vko'):<{Viikko_W}}"+
+            f"{paiva['Aika']:<{Päivämäärä_W}}"+
+            f"{paiva['Päivä']:<{Päivä_W}}"+
+            f"{paiva['Kulutus nettona (kWh)']:>{Kulutus_W}.2f}".replace('.', ',')+
+            f"{paiva['Tuotanto nettona (kWh)']:>{Tuotanto_W}.2f}".replace('.', ',')+
+            f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W}}"
+            )
+        edellinen_viikko = nykyinen_viikko # Päivitetään edellinen viikko.
+
+def tulosta_vuosi(Yksi_paiva: dict, vuosi: int) -> None:
+    '''Tulostaa tiedostojen päivät konsoliin. Erottelee viikot viivalla.'''
+    
+    #Muodostetaan Filtteri vuodelle.
+    paivat_vuodelta = {
+        k: v for k, v in Yksi_paiva.items()
+        if v["Vuosi"] == vuosi
+    }
+    if not paivat_vuodelta:
+        print(f"Vuodelta {vuosi} ei löydy tietoja.")
+        return
+
+    #Määritetään sarakkeiden leveydet ja viivojen pituus
+    edellinen_viikko = None
+    Vuosi_W = 7
+    Kuukausi_W = 10
+    Viikko_W = 10
+    Päivämäärä_W = 15
+    Päivä_W = 15
+    Kulutus_W = 30
+    Tuotanto_W = 30
+    Lämpötila_W = 33
+    viivojen_pituus = Vuosi_W + Kuukausi_W + Viikko_W + Päivämäärä_W + Päivä_W + Kulutus_W + Tuotanto_W + Lämpötila_W
+
+    # Tulostetaan otsikot ja muotoilut
+    print(" ")
+    print("-"*viivojen_pituus)
+    print("sähkönkulutus ja -tuotanto nettona kWh-yksikössä kaikista päivistä:")
+    print("-"*viivojen_pituus)
+    print(" ")
+    print("-"*viivojen_pituus)
+    print(
+        f"{'Vuosi':<{Vuosi_W}}"+
+        f"{'Kuukausi':<{Kuukausi_W}}"+
+        f"{'Viikko':<{Viikko_W}}"+
+        f"{'Päivämäärä':<{Päivämäärä_W}}"+
+        f"{'Päivä':<{Päivä_W}}"+
+        f"{'Kulutus nettona (kWh)':>{Kulutus_W}}"+
+        f"{'Tuotanto nettona (kWh)':>{Tuotanto_W}}"+
+        f"{'Vuorokauden keskilämpötila':>{Lämpötila_W}}"
+        )
+    print("-"*viivojen_pituus)
+    print("-"*viivojen_pituus)
+    
+    # Suodatetaan ja tulostetaan vain halutun vuoden päivät
+    # Jotta saadaan viikot eroteltua, tarkistetaan edellinen viikko ja verrataan sitä nykyiseen.
+
+    for paiva in paivat_vuodelta.values():
+        nykyinen_viikko = paiva["Viikko"]
+        
         if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
             print("-"*viivojen_pituus)
 
@@ -173,6 +236,188 @@ def tulosta_kaikki(Yksi_paiva) -> None:
             f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W}}"
             )
         edellinen_viikko = nykyinen_viikko # Päivitetään edellinen viikko.
+    print("-"*viivojen_pituus)
+
+def tulosta_kuukausi(Yksi_paiva: dict, kuukausi: int) -> None:
+    '''Tulostaa tiedostojen päivät konsoliin. Erottelee viikot viivalla.'''
+    
+    #Muodostetaan Filtteri kuukaudelle.
+    paivat_kuukaudelta = {
+        k: v for k, v in Yksi_paiva.items()
+        if v["Kuukausi"] == kuukausi and v["Vuosi"] == datetime.now().year
+    }
+    if not paivat_kuukaudelta:
+        print(f"Kuukaudelta {kuukausi} ei löydy tietoja.")
+        return
+
+    #Määritetään sarakkeiden leveydet ja viivojen pituus
+    edellinen_viikko = None
+    Vuosi_W = 7
+    Kuukausi_W = 10
+    Viikko_W = 10
+    Päivämäärä_W = 15
+    Päivä_W = 15
+    Kulutus_W = 30
+    Tuotanto_W = 30
+    Lämpötila_W = 33
+    viivojen_pituus = Vuosi_W + Kuukausi_W + Viikko_W + Päivämäärä_W + Päivä_W + Kulutus_W + Tuotanto_W + Lämpötila_W
+
+    # Tulostetaan otsikot ja muotoilut
+    print(" ")
+    print("-"*viivojen_pituus)
+    print("sähkönkulutus ja -tuotanto nettona kWh-yksikössä kaikista päivistä:")
+    print("-"*viivojen_pituus)
+    print(" ")
+    print("-"*viivojen_pituus)
+    print(
+        f"{'Vuosi':<{Vuosi_W}}"+
+        f"{'Kuukausi':<{Kuukausi_W}}"+
+        f"{'Viikko':<{Viikko_W}}"+
+        f"{'Päivämäärä':<{Päivämäärä_W}}"+
+        f"{'Päivä':<{Päivä_W}}"+
+        f"{'Kulutus nettona (kWh)':>{Kulutus_W}}"+
+        f"{'Tuotanto nettona (kWh)':>{Tuotanto_W}}"+
+        f"{'Vuorokauden keskilämpötila':>{Lämpötila_W}}"
+        )
+    print("-"*viivojen_pituus)
+    print("-"*viivojen_pituus)
+
+    # Suodatetaan ja tulostetaan vain halutun kuukauden päivät
+    # Jotta saadaan viikot eroteltua, tarkistetaan edellinen viikko ja verrataan sitä nykyiseen.
+    for paiva in paivat_kuukaudelta.values():
+        nykyinen_viikko = paiva["Viikko"]
+        
+        if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
+            print("-"*viivojen_pituus)
+
+        print(
+            f"{paiva['Vuosi']:<{Vuosi_W}}"+
+            f"{paiva['Kuukausi']:<{Kuukausi_W}}"+
+            f"{paiva['Viikko'].removeprefix("vko"):<{Viikko_W}}"+
+            f"{paiva['Aika']:<{Päivämäärä_W}}"+
+            f"{paiva['Päivä']:<{Päivä_W}}"+
+            f"{paiva['Kulutus nettona (kWh)']:>{Kulutus_W}.2f}".replace('.', ',')+
+            f"{paiva['Tuotanto nettona (kWh)']:>{Tuotanto_W}.2f}".replace('.', ',')+
+            f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W}}"
+            )
+        edellinen_viikko = nykyinen_viikko # Päivitetään edellinen viikko.
+    print("-"*viivojen_pituus)
+
+def tulosta_viikko(Yksi_paiva: dict, viikko: int) -> None:
+    '''Tulostaa tiedostoista tietyt viikot konsoliin. Erottelee viikot viivalla.'''
+    #Muodostetaan Filtteri viikolle.
+    paivat_viikolta = {
+        k: v for k, v in Yksi_paiva.items()
+        if v["Viikko"] == f"vko{viikko}" and v["Vuosi"] == datetime.now().year
+    }
+    if not paivat_viikolta:
+        print(f"Viikolta {viikko} ei löydy tietoja.")
+        return
+    
+    #Määritetään sarakkeiden leveydet ja viivojen pituus
+    Vuosi_W = 7
+    Kuukausi_W = 10
+    Viikko_W = 10
+    Päivämäärä_W = 15
+    Päivä_W = 15
+    Kulutus_W = 30
+    Tuotanto_W = 30
+    Lämpötila_W = 33
+    viivojen_pituus = Vuosi_W + Kuukausi_W + Viikko_W + Päivämäärä_W + Päivä_W + Kulutus_W + Tuotanto_W + Lämpötila_W
+    
+    # Tulostetaan otsikot ja muotoilut
+    print(" ")
+    print("-"*viivojen_pituus)
+    print("sähkönkulutus ja -tuotanto nettona kWh-yksikössä kaikista päivistä:")
+    print("-"*viivojen_pituus)
+    print(" ")
+    print("-"*viivojen_pituus)
+    print(
+        f"{'Vuosi':<{Vuosi_W}}"+
+        f"{'Kuukausi':<{Kuukausi_W}}"+
+        f"{'Viikko':<{Viikko_W}}"+
+        f"{'Päivämäärä':<{Päivämäärä_W}}"+
+        f"{'Päivä':<{Päivä_W}}"+
+        f"{'Kulutus nettona (kWh)':>{Kulutus_W}}"+
+        f"{'Tuotanto nettona (kWh)':>{Tuotanto_W}}"+
+        f"{'Vuorokauden keskilämpötila':>{Lämpötila_W}}"
+        )
+    print("-"*viivojen_pituus)
+    print("-"*viivojen_pituus)         
+
+    # Suodatetaan ja tulostetaan vain halutun viikon päivät
+    for paiva in paivat_viikolta.values():
+        print(
+            f"{paiva['Vuosi']:<{Vuosi_W}}"+
+            f"{paiva['Kuukausi']:<{Kuukausi_W}}"+
+            f"{paiva['Viikko'].removeprefix("vko"):<{Viikko_W}}"+
+            f"{paiva['Aika']:<{Päivämäärä_W}}"+
+            f"{paiva['Päivä']:<{Päivä_W}}"+
+            f"{paiva['Kulutus nettona (kWh)']:>{Kulutus_W}.2f}".replace('.', ',')+
+            f"{paiva['Tuotanto nettona (kWh)']:>{Tuotanto_W}.2f}".replace('.', ',')+
+            f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W}}"
+            )
+    print("-"*viivojen_pituus)
+
+def tulosta_paiva(tunti_arvot: dict, paiva: date) -> None:
+    '''Tulostaa tiedostoista tietyn päivän konsoliin tunneittain.'''
+    #Muodostetaan Filtteri päivälle.
+    tunnit = {
+        aika: arvot
+        for aika, arvot in tunti_arvot.items()
+        if aika.date() == paiva
+    }
+    if not tunnit:
+        print(f"Päivältä {paiva.strftime('%d.%m.%Y')} ei löydy tietoja.")
+        return
+    
+    #Määritetään sarakkeiden leveydet ja viivojen pituus
+    Vuosi_W = 7
+    Kuukausi_W = 10
+    Viikko_W = 10
+    Päivämäärä_W = 15
+    Päivä_W = 15
+    Klo_W = 6
+    Kulutus_W = 30
+    Tuotanto_W = 30
+    Lämpötila_W = 33
+    viivojen_pituus = Vuosi_W + Kuukausi_W + Viikko_W + Päivämäärä_W + Päivä_W + Klo_W + Kulutus_W + Tuotanto_W + Lämpötila_W
+    
+    # Tulostetaan otsikot ja muotoilut
+    print(" ")
+    print("-"*viivojen_pituus)
+    print("sähkönkulutus ja -tuotanto nettona kWh-yksikössä kaikista päivistä:")
+    print("-"*viivojen_pituus)
+    print(" ")
+    print("-"*viivojen_pituus)
+    print(
+        f"{'Vuosi':<{Vuosi_W}}"+
+        f"{'Kuukausi':<{Kuukausi_W}}"+
+        f"{'Viikko':<{Viikko_W}}"+
+        f"{'Päivämäärä':<{Päivämäärä_W}}"+
+        f"{'Päivä':<{Päivä_W}}"+
+        f"{'Klo':<{Klo_W}}"+
+        f"{'Kulutus nettona (kWh)':>{Kulutus_W}}"+
+        f"{'Tuotanto nettona (kWh)':>{Tuotanto_W}}"+
+        f"{'Vuorokauden keskilämpötila':>{Lämpötila_W}}"
+        )
+    print("-"*viivojen_pituus)
+    print("-"*viivojen_pituus)
+
+    # Suodatetaan ja tulostetaan vain halutun päivän tiedot
+    for aika in sorted(tunnit.keys()):
+        arvot = tunnit[aika]
+        print(
+            f"{arvot['Vuosi']:<{Vuosi_W}}"+
+            f"{arvot['Kuukausi']:<{Kuukausi_W}}"+
+            f"{f'{aika.isocalendar().week}':<{Viikko_W}}"+
+            f"{aika.strftime('%d.%m.%Y'):<{Päivämäärä_W}}"+
+            f"{viikonpaivat_kaantaja_en_fi[aika.strftime('%A')]:<{Päivä_W}}"+
+            f"{aika.strftime('%H:%M'):<{Klo_W}}"+ 
+            f"{arvot['Kulutus nettona (kWh)']:>{Kulutus_W}.2f}"+
+            f"{arvot['Tuotanto nettona (kWh)']:>{Tuotanto_W}.2f}" +
+            f"{arvot['Vuorokauden keskilämpötila']:>{Lämpötila_W-3}.1f} °C"
+            )
     print("-"*viivojen_pituus)
 
 def rapsan_luonti(paivakohtaiset_tulokset) -> str:
@@ -216,11 +461,148 @@ def luo_txt_tiedosto(rapsa) -> None:
         f.write(rapsa)
     print(f"Raportti luotu tiedostoon: {tiedoston_nimi}")
 
-#def kysy_raportti(rapsa: str) -> None:
-    #while True:
+def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
+    '''Valikko käyttäjälle.'''
+    input("\n Paina Enter jatkamiseksi...")
+    while True:
+        print(" ")
+        print("=== VALIKKO ===")
+        print("Mitä tänän saisi olla? Valitse alla olevista vaihtoehdoista:")
+        print("1 - Tulosta kaikki päivät konsoliin")
+        print("2 - Tulosta haluamasi vuoden kokonaisuudessaan konsoliin")
+        print("3 - Tulosta haluamasi kuluvan vuoden kuukauden yhteenveto konsoliin")
+        print("4 - Tulosta haluamasi kuluvan vuoden viikon yhteenveto konsoliin")
+        print("5 - Tulosta haluamasi päivän tiedot konsoliin tunneittain, PREMIUM-JÄSENILLE")
+        print("6 - Poistu ohjelmasta")
+        valinta = input("Valintasi: ").strip().upper()
+        if valinta not in ["1", "2", "3", "4", "5", "6"]:
+            print("Virheellinen valinta. Yritä uudelleen.")
+
+        if valinta == "1":
+            print("Valitsit vaihtoehdon 1: Tulosta kaikki päivät konsoliin")
+            print("Haluatko jatkaa? (K/E)")
+            jatka = input().strip().upper()
+            if jatka == "K":
+                print("Haetaan ja tulostetaan kaikki päivät:")
+                time.sleep(1)
+                tulosta_kaikki(paivadata)
+                input("\n Paina Enter jatkamiseksi...")
+
+        if valinta == "2":
+            print("Valitsit vaihtoehdon 2: Tulosta haluamasi vuoden kokonaisuudessaan konsoliin")
+            print("Haluatko jatkaa? (K/E)")
+            jatka = input().strip().upper()
+            if jatka == "K":
+                vuosi = paavalikko_2_vuosi()
+                print("Haetaan ja tulostetaan tiedot vuodelta:", vuosi)
+                time.sleep(1)
+                tulosta_vuosi(paivadata, vuosi)
+                input("\n Paina Enter jatkamiseksi...")
+                
+        
+        if valinta == "3":
+            print("Valitsit vaihtoehdon 3: Tulosta haluamasi kuluvan vuoden kuukauden yhteenveto konsoliin")
+            print("Haluatko jatkaa? (K/E)")
+            jatka = input().strip().upper()
+            if jatka == "K":
+                kuukausi = paavalikko_3_kuukausi()
+                kk_en = datetime(2000, kuukausi, 1).strftime("%B")
+                kk_fi = kuukaudet_kaantaja_en_fi[kk_en]
+                print("Haetaan ja tulostetaan tiedot kuukaudelta:", kk_fi)
+                time.sleep(1)
+                tulosta_kuukausi(paivadata, kuukausi)
+                input("\n Paina Enter jatkamiseksi...")
+        
+        if valinta == "4":
+            print("Valitsit vaihtoehdon 4: Tulosta haluamasi kuluvan vuoden viikon yhteenveto konsoliin")
+            print("Haluatko jatkaa? (K/E)")
+            jatka = input().strip().upper()
+            if jatka == "K":
+                viikko = paavalikko_4_viikko()
+                print("Haetaan ja tulostetaan tiedot viikolta:", viikko)
+                time.sleep(1)
+                tulosta_viikko(paivadata, viikko)
+                input("\n Paina Enter jatkamiseksi...")
+
+        if valinta == "5":
+            print("Valitsit vaihtoehdon 5: Tulosta haluamasi päivän tiedot konsoliin tunneittain, PREMIUM-JÄSENILLE")
+            print("Haluatko jatkaa? (K/E)")
+            jatka = input().strip().upper()
+            if jatka == "K":
+                paiva = paavalikko_5_paiva()
+                if paiva is None:
+                    # Käyttäjä ei ole premium-jäsen, palataan valikkoon
+                    continue
+                print("Haetaan ja tulostetaan tiedot päivältä:", paiva.strftime("%d.%m.%Y"))
+                time.sleep(1)
+                tulosta_paiva(tunti_arvot, paiva)
+                input("\n Paina Enter jatkamiseksi...")
+
+        if valinta == "6":
+            print("Jaaha, Rahaa ja lämpöä on on niin paljon, että voi jakaa harakoillekkin. Ei siin mittää sit... Palaillaan toiste!")
+            print("Ohjelma suljetaan.")
+            return
+
+def paavalikko_2_vuosi() -> int:
+    '''Päävalikon alivalikko vuoden valintaan.'''
+    while True:
+    
+        vuosi_input = input("Anna haluamasi vuosi muodossa vvvv (esim. 2023): ")
+        try:
+            vuosi = int(vuosi_input)
+            if 2000 <= vuosi <= 2100:
+                return vuosi
+            else:
+                print("Anna Nyt jotain järkevää, jotain tältä vuosisadalta!")
+        except ValueError:
+            print("Virheellinen syöte. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
+
+def paavalikko_3_kuukausi() -> int:
+    '''Päävalikon alivalikko kuukauden valintaan.'''
+    while True:
+
+        kuukausi_input = input("Anna haluamasi kuukausi muodossa kk (esim. 01): ")
+        try:
+            vuosi = datetime.now().year
+            kuukausi = int(kuukausi_input)
+            if 1 <= kuukausi <= 12 and vuosi == datetime.now().year:
+                return kuukausi
+            else:
+                print("Anna Nyt jotain järkevää, jotain kuukauden numero välillä 1-12!")
+        except ValueError:
+            print("Virheellinen syöte. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
+
+def paavalikko_4_viikko() -> int:
+    '''Päävalikon alivalikko viikon valintaan.'''
+    while True:
+        vuosi = datetime.now().year
+        viikko_input = input("Anna haluamasi viikkon numero (esim. 1 tai 42): ")
+        try:
+            vuosi = datetime.now().year
+            viikko = int(viikko_input)
+            if 1 <= viikko <= 52 and vuosi == datetime.now().year:
+                return viikko
+            else:
+                print("Anna Nyt jotain järkevää, jotain viikon numero välillä 1-52!")
+        except ValueError:
+            print("Virheellinen syöte. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
+
+def paavalikko_5_paiva() -> Optional[date]:
+    '''Päävalikon alivalikko päivän valintaan.'''
+    premium_jasen = input("Oletko PREMIUM-JÄSEN? (K/E): ").strip().upper()
+    if premium_jasen != "K":
+        print("Valitettavasti tämä ominaisuus on saatavilla vain PREMIUM-JÄSENILLE.")
+        return None
         
 
-def Mainos(Mainos:str) -> None:
+    while True:
+        paiva_input = input("Anna haluamasi päivä muodossa pp.kk.vvvv (esim. 05.03.2023): ")
+        try:
+            return datetime.strptime(paiva_input, "%d.%m.%Y").date()
+        except ValueError:
+            print("Virheellinen päivämäärä. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
+
+def Mainos() -> None:
     '''Mainokset pääsi mystisesti tähän ohjelmaan.'''
 
     premium_mainos = str("PREMIUM-JÄSENYYS: VAIN 9,99 €kk!")
@@ -229,6 +611,7 @@ def Mainos(Mainos:str) -> None:
     print(" ")
     print("-"*len(pisin_teksti))
     print("Tervetuloa AurinkoSähköPaneelirapsageneraattori Palveluun!")
+    print(" ")
     print("Tulitko hakemaan viikkoraporttia sähkönkulutuksesta ja -tuotannosta? Vai tulitko vertailemaan päivittäistä sähkönkulutusta ja -tuotantoa?")
     print("Etkö tiedä mikä kuluttaa hirveästi sähköä? Puolisosi on taas torkkunut sähköpeiton alla? Lapset pelaa yötämyöhään pleikkarilla?")
     print(pisin_teksti)
@@ -244,11 +627,12 @@ def Mainos(Mainos:str) -> None:
     
 def main():
     '''Pääohjelma.'''
-    #Mainos("Mainos")
+    Mainos()
     tiedostolista = luetiedostot()
     tunti_arvot = kasittele_Viikkodata(tiedostolista)
     paivakohtaiset_tulokset = paivalaskut(tunti_arvot)
-    tulosta_kaikki(paivakohtaiset_tulokset)
+    paavalikko(tunti_arvot, paivakohtaiset_tulokset)
+    # tama on valmis  # tulosta_kaikki(paivakohtaiset_tulokset)
     #rapsa = rapsan_luonti(paivakohtaiset_tulokset)
     #kysy_raportti(rapsa)
     
