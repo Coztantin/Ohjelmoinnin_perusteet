@@ -88,8 +88,141 @@ def tieto_muuntaja(rivi):
         float(rivi[2].replace(",", ".")),                   # Sähköntuotanto kWh
         float(rivi[3].replace(",", "."))                    # Lämpötila Celsius
     ]
+
+def aikavalilta_suodatus(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
+    '''Suodattaa tiedot aikaväliltä.'''
+    edellinen_viikko = None
+    nykyinen_paiva = None
+    suodatetut_tiedot = []
     
-def Valikko():
+    paiva_kulutus = 0.0
+    paiva_tuotanto = 0.0
+    paiva_lampotila = None
+
+
+    for rivi in kaikki_tunnit:
+        pvm = rivi[0].date()
+        if alkupvm <= rivi[0].date() <= loppupvm:
+
+            if nykyinen_paiva is None:
+                nykyinen_paiva = pvm
+            
+            elif pvm != nykyinen_paiva:
+                suodatetut_tiedot.append(
+                f"{rivi[0].year}:<{Raportti_pohjan_muotoilut['Vuosi_W']};" +
+                f"{kuukaudet_kaantaja_en_fi[rivi[0].strftime('%B')]:<{Raportti_pohjan_muotoilut['Kuukausi_W']}};" +
+                f"{rivi[0].isocalendar()[1]:<{Raportti_pohjan_muotoilut['Viikko_W']}};" +
+                f"{rivi[0].date().strftime('%d.%m.%Y'):<{Raportti_pohjan_muotoilut['Päivämäärä_W']}};" +
+                f"{viikonpaivat_kaantaja_en_fi[rivi[0].strftime('%A')]:<{Raportti_pohjan_muotoilut['Päivä_W']}};" +
+                f"{rivi[0].strftime('%H:%M'):>{Raportti_pohjan_muotoilut['Klo_W']}};" +
+                (f"{paiva_kulutus:>{Raportti_pohjan_muotoilut['Kulutus_W']}.2f} ").replace(".", ",") +
+                (f"{paiva_tuotanto:>{Raportti_pohjan_muotoilut['Tuotanto_W']}.2f} ").replace(".", ",") +
+                (f"{paiva_lampotila:>{Raportti_pohjan_muotoilut['Lämpötila_W']}.2f}").replace(".", ",")+ " °C"
+                )
+                paiva_kulutus = 0.0
+                paiva_tuotanto = 0.0
+                paiva_lampotila = None
+                nykyinen_paiva = pvm #Päivitetään nykyinen päivä
+
+            paiva_kulutus += rivi[1]
+            paiva_tuotanto += rivi[2]
+            paiva_lampotila = rivi[3] if paiva_lampotila is None else (paiva_lampotila + rivi[3]) / 2
+
+            suodatetut_tiedot.append(
+                f"{rivi[0].year}:<{Raportti_pohjan_muotoilut['Vuosi_W']};" +
+                f"{kuukaudet_kaantaja_en_fi[rivi[0].strftime('%B')]:<{Raportti_pohjan_muotoilut['Kuukausi_W']}};" +
+                f"{rivi[0].isocalendar()[1]:<{Raportti_pohjan_muotoilut['Viikko_W']}};" +
+                f"{rivi[0].date().strftime('%d.%m.%Y'):<{Raportti_pohjan_muotoilut['Päivämäärä_W']}};" +
+                f"{viikonpaivat_kaantaja_en_fi[rivi[0].strftime('%A')]:<{Raportti_pohjan_muotoilut['Päivä_W']}};" +
+                f"{rivi[0].strftime('%H:%M'):>{Raportti_pohjan_muotoilut['Klo_W']}};" +
+                (f"{paiva_kulutus:>{Raportti_pohjan_muotoilut['Kulutus_W']}.2f} ").replace(".", ",") +
+                (f"{paiva_tuotanto:>{Raportti_pohjan_muotoilut['Tuotanto_W']}.2f} ").replace(".", ",") +
+                (f"{paiva_lampotila:>{Raportti_pohjan_muotoilut['Lämpötila_W']}.2f}").replace(".", ",")+ " °C"
+            )
+            paiva_kulutus = 0.0
+            paiva_tuotanto = 0.0
+            paiva_lampotila = None
+            nykyinen_paiva = pvm #Päivitetään nykyinen päivä
+        if nykyinen_paiva is not None:
+            suodatetut_tiedot.append(
+                f"{rivi[0].year}:<{Raportti_pohjan_muotoilut['Vuosi_W']};" +
+                f"{kuukaudet_kaantaja_en_fi[rivi[0].strftime('%B')]:<{Raportti_pohjan_muotoilut['Kuukausi_W']}};" +
+                f"{rivi[0].isocalendar()[1]:<{Raportti_pohjan_muotoilut['Viikko_W']}};" +
+                f"{rivi[0].date().strftime('%d.%m.%Y'):<{Raportti_pohjan_muotoilut['Päivämäärä_W']}};" +
+                f"{viikonpaivat_kaantaja_en_fi[rivi[0].strftime('%A')]:<{Raportti_pohjan_muotoilut['Päivä_W']}};" +
+                f"{rivi[0].strftime('%H:%M'):>{Raportti_pohjan_muotoilut['Klo_W']}};" +
+                (f"{paiva_kulutus:>{Raportti_pohjan_muotoilut['Kulutus_W']}.2f} ").replace(".", ",") +
+                (f"{paiva_tuotanto:>{Raportti_pohjan_muotoilut['Tuotanto_W']}.2f} ").replace(".", ",") +
+                (f"{paiva_lampotila:>{Raportti_pohjan_muotoilut['Lämpötila_W']}.2f}").replace(".", ",")+ " °C"
+            )
+
+    return suodatetut_tiedot
+
+#TÄMÄ TEKEE TUNTEJA
+
+# def aikavalilta_suodatus(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
+#     '''Suodattaa tiedot aikaväliltä.'''
+#     edellinen_viikko = None
+#     nykyinen_paiva = None
+#     suodatetut_tiedot = []
+    
+#     paiva_kulutus = 0.0
+#     paiva_tuotanto = 0.0
+#     paiva_lampotila = None
+
+
+#     for rivi in kaikki_tunnit:
+#         pvm = rivi[0].date()
+#         if alkupvm <= rivi[0].date() <= loppupvm:
+#             nykyinen_viikko = rivi[0].isocalendar()[1] #määrää nykyisen viikon numeron vuodelle
+            
+#             if nykyinen_paiva is not None and pvm != nykyinen_paiva:
+
+            
+#                 if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
+
+#                     print(Raportti_pohjan_muotoilut["viivat"])
+
+        
+#                 print(
+#                     f"{rivi[0].year:<{Raportti_pohjan_muotoilut['Vuosi_W']}} " +
+#                     f"{kuukaudet_kaantaja_en_fi[rivi[0].strftime('%B')]:<{Raportti_pohjan_muotoilut['Kuukausi_W']}} " +
+#                     f"{rivi[0].isocalendar()[1]:<{Raportti_pohjan_muotoilut['Viikko_W']}} " +
+#                     f"{rivi[0].date().strftime('%d.%m.%Y'):<{Raportti_pohjan_muotoilut['Päivämäärä_W']}} " +
+#                     f"{viikonpaivat_kaantaja_en_fi[rivi[0].strftime('%A')]:<{Raportti_pohjan_muotoilut['Päivä_W']}} " +
+#                     f"{rivi[0].strftime('%H:%M'):>{Raportti_pohjan_muotoilut['Klo_W']}} " +
+#                     (f"{rivi[1]:>{Raportti_pohjan_muotoilut['Kulutus_W']}.2f} ").replace(".", ",") +
+#                     (f"{rivi[2]:>{Raportti_pohjan_muotoilut['Tuotanto_W']}.2f} ").replace(".", ",") +
+#                     (f"{rivi[3]:>{Raportti_pohjan_muotoilut['Lämpötila_W']}.2f}").replace(".", ",")
+#                 )
+
+#                 # Päivän tietojen nollaus
+#                 paiva_kulutus = 0.0
+#                 paiva_tuotanto = 0.0
+
+#             # Päivän tietojen kerääminen
+#             paiva_kulutus += rivi[1]
+#             paiva_tuotanto += rivi[2]
+
+#             nykyinen_paiva = pvm #Päivitetään nykyinen päivä
+#             edellinen_viikko = nykyinen_viikko #Päivitetään edellinen viikko
+        
+#         if nykyinen_paiva is not None:
+#             print(Raportti_pohjan_muotoilut["viivat"])
+#             print(
+#                 f"{nykyinen_paiva.year:<{Raportti_pohjan_muotoilut['Vuosi_W']}} " +
+#                 f"{kuukaudet_kaantaja_en_fi[nykyinen_paiva.strftime('%B')]:<{Raportti_pohjan_muotoilut['Kuukausi_W']}} " +
+#                 f"{edellinen_viikko:<{Raportti_pohjan_muotoilut['Viikko_W']}} " +
+#                 f"{nykyinen_paiva.strftime('%d.%m.%Y'):<{Raportti_pohjan_muotoilut['Päivämäärä_W']}} " +
+#                 f"{viikonpaivat_kaantaja_en_fi[nykyinen_paiva.strftime('%A')]:<{Raportti_pohjan_muotoilut['Päivä_W']}} " +
+#                 f"{'':>{Raportti_pohjan_muotoilut['Klo_W']}} " +
+#                 (f"{paiva_kulutus:>{Raportti_pohjan_muotoilut['Kulutus_W']}.2f} ").replace(".", ",") +
+#                 (f"{paiva_tuotanto:>{Raportti_pohjan_muotoilut['Tuotanto_W']}.2f} ").replace(".", ",")
+#             )
+    
+#     return suodatetut_tiedot    
+
+def Valikko() -> int:
     '''Näyttää valikon ja palauttaa käyttäjän valinnan.'''
     
     # Ensimmäinen valikko
@@ -121,7 +254,9 @@ def Valikko():
             print("Valitsit päiväkohtaisen yhteenvedon aikaväliltä.\n"
                   "Tarvitaan alkupäivämäärä ja loppupäivämäärä muodossa pp.kk.vvvv.")
             alkupvm, loppupvm = valikko_aikavali()
+            aikavalilta_suodatus(alkupvm, loppupvm, kaikki_tunnit)
             print(f"Valitsit aikavälin {alkupvm} - {loppupvm}. Käsitellään tiedot...")
+
             # Kutsu funktiota, joka käsittelee päiväkohtaisen yhteenvedon
         elif eka_valinta == 2:
             time.sleep(1)
@@ -231,8 +366,8 @@ def valikko_kuukausi() -> int:
 def valikko_aikavali() -> tuple[date, date]:
     '''Päävalikon alivalikko aikavälin valintaan.'''
     while True:
-        alku_input = input("Anna aikavälin alku päivämäärä muodossa pp.kk.vvvv (esim. 01.01.2023): ")
-        loppu_input = input("Anna aikavälin loppu päivämäärä muodossa pp.kk.vvvv (esim. 31.12.2023): ")
+        alku_input = input("Anna aikavälin alku päivämäärä muodossa p.k.vvvv (esim. 1.1.2023): ")
+        loppu_input = input("Anna aikavälin loppu päivämäärä muodossa p.k.vvvv (esim. 31.12.2023): ")
         try:
             alku = datetime.strptime(alku_input, "%d.%m.%Y").date()
             loppu = datetime.strptime(loppu_input, "%d.%m.%Y").date()
@@ -284,9 +419,12 @@ def main():
 
     tiedostolista =luetiedostot()
     kasittele_tiedostot(tiedostolista)
-    Rapsa = raportti(raportin_Sisalto(), raportin_Pohja())
-    raportti_tiedostoon(Rapsa)
-    print("Raportti on luotu tiedostoon 'Raporttipinkka\\raportti.txt' onnistuneesti.")
+    alkupvm, loppupvm = date(2025, 1, 1), date(2025, 1, 31)
+    
+    print(aikavalilta_suodatus(alkupvm, loppupvm, kaikki_tunnit))
+    #Rapsa = raportti(raportin_Sisalto(), raportin_Pohja())
+    #raportti_tiedostoon(Rapsa)
+    #print("Raportti on luotu tiedostoon 'Raporttipinkka\\raportti.txt' onnistuneesti.")
 
     #raportti_tiedostoon(raportti)
     #print("Raportti on luotu tiedostoon 'Raporttipinkka\\raportti.txt' onnistuneesti.")
