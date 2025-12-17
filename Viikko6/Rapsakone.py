@@ -37,6 +37,23 @@ kuukaudet_kaantaja_en_fi = {
     "December": "Joulukuu"
 }
 
+#Määritetään sarakkeiden leveydet ja viivojen pituus
+Raportti_pohjan_muotoilut = {
+    "Vuosi_W" : 7,
+    "Kuukausi_W" : 10,
+    "Viikko_W" : 10,
+    "Päivämäärä_W" : 15,
+    "Päivä_W" : 15,
+    "Klo_W" : 6,
+    "Kulutus_W" : 30,
+    "Tuotanto_W" : 30,
+    "Lämpötila_W" : 33,
+}
+Raportti_pohjan_muotoilut["viivanpituus"] = sum(Raportti_pohjan_muotoilut.values())
+Raportti_pohjan_muotoilut["viivat"] = "-" * Raportti_pohjan_muotoilut["viivanpituus"] # type: ignore
+
+
+
 tiedostolista = []
 kaikki_tunnit = []
 def luetiedostot() -> list:
@@ -48,7 +65,7 @@ def luetiedostot() -> list:
     print("Kansiossa olevat tiedostot:", tiedostolista)
     return tiedostolista
 
-def kasittele_Viikkodata():
+def kasittele_tiedostot(tiedostolista):
     '''Lukee tiedostot ja muodostaa kaikista listan arvoista sanakirjoina. Koska kyseessä on suhteellisen pieni tiedostokoko (alle 500KB), vaikka siihen lisättäisiin viimeinen
     kuukausi dataa, voidaan kaikki tiedot lukea kerralla muistiin. Tekoälyn mukaan, jos tiedostokoko olisi yli 10-50MB TAI yli 100 000 riviä, tulisi harkita eri lähestymistapaa.
     Turha lähtee pilkkomaan.'''
@@ -72,7 +89,6 @@ def tieto_muuntaja(rivi):
         float(rivi[3].replace(",", "."))                    # Lämpötila Celsius
     ]
     
-
 def Valikko():
     '''Näyttää valikon ja palauttaa käyttäjän valinnan.'''
     
@@ -227,9 +243,54 @@ def valikko_aikavali() -> tuple[date, date]:
         except ValueError:
             print("Virheellinen päivämäärä. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
 
+def raportin_Sisalto() -> str:
+    '''Luo raportin sisällön.'''
+    
+    raportti_sisalto = ""
+    raportti_sisalto += "Elama on roskaa"#tähän kohtaan funktio, joka laskee ja lisää raportin sisällön
+  
+    return raportti_sisalto
+
+def raportin_Pohja() -> str:
+    '''Luo raportin pohjan.'''
+    #Tätä muokataan jos ehditään lisäämään modulaarisuutta
+
+    raportti_pohja = "Rapsakone Raportti - Yhteenveto\n"                                                                                    #Tätä voisimuokata lisäämällä mitä tulostetaan
+    raportti_pohja += f"{Raportti_pohjan_muotoilut['viivat']}\n"
+    raportti_pohja += "Tässä raportissa esitetään sähkönkulutuksen, sähköntuotannon ja lämpötilan yhteenveto valitulta ajanjaksolta.\n\n"   #Tätäkin voisi muokata modulaarisuutta
+    raportti_pohja += f"{Raportti_pohjan_muotoilut['viivat']}\n"
+    raportti_pohja += f"{'Vuosi':<{Raportti_pohjan_muotoilut['Vuosi_W']}} {'Kuukausi':<{Raportti_pohjan_muotoilut['Kuukausi_W']}} {'Viikko':<{Raportti_pohjan_muotoilut['Viikko_W']}} {'Päivämäärä':<{Raportti_pohjan_muotoilut['Päivämäärä_W']}} {'Päivä':<{Raportti_pohjan_muotoilut['Päivä_W']}} {'Klo':<{Raportti_pohjan_muotoilut['Klo_W']}} {'Kulutus (kWh)':>{Raportti_pohjan_muotoilut['Kulutus_W']}} {'Tuotanto (kWh)':>{Raportti_pohjan_muotoilut['Tuotanto_W']}} {'Lämpötila (°C)':>{Raportti_pohjan_muotoilut['Lämpötila_W']}}\n" 
+    raportti_pohja += f"{Raportti_pohjan_muotoilut['viivat']}\n"
+
+    # Lisää tähän raportin sisältöä laskettujen tietojen perusteella
+    return raportti_pohja
+
+def raportti(raportin_sisalto: str,raportin_pohja: str) -> str:
+    '''Luo koko raportin.'''
+    raportti = ""
+    raportti += raportin_pohja
+    raportti += raportin_sisalto
+
+    return raportti
+
+def raportti_tiedostoon(raportti: str):
+    '''Kirjoittaa raportin tiedostoon.'''
+    with open("Raporttipinkka\\raportti.txt", "w", encoding="utf-8") as f:
+        f.write(raportti)
+
+
 def main():
     '''Pääohjelma. Kysyy Käyttäjältä valikon avulla halutun toiminnon ja suorittaa sen. Tulosten tarkistelu ja tallennus tiedostoon.'''
-    valinta = Valikko()
+
+    tiedostolista =luetiedostot()
+    kasittele_tiedostot(tiedostolista)
+    Rapsa = raportti(raportin_Sisalto(), raportin_Pohja())
+    raportti_tiedostoon(Rapsa)
+    print("Raportti on luotu tiedostoon 'Raporttipinkka\\raportti.txt' onnistuneesti.")
+
+    #raportti_tiedostoon(raportti)
+    #print("Raportti on luotu tiedostoon 'Raporttipinkka\\raportti.txt' onnistuneesti.")
+    #valinta = Valikko()
 
 if __name__ == "__main__":
     main()

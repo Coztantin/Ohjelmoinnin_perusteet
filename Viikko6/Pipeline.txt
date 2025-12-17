@@ -1,11 +1,11 @@
 # Tehtävä 6 pipeline
 
 1 Kehitä valikon logiikka
-    - päävalikko
-    - alavalikot
-    - liikkuvuus kuntoon
-2 Tiedostojen lukeminen
-3 Tiedostojen uudelleenkirjoitus
+    - päävalikko done
+    - alavalikot done??
+    - liikkuvuus kuntoon ehkö?
+2 Tiedostojen lukeminen -  done
+3 Tiedostojen uudelleenkirjoitus 
 4 Tulostetaan jottai konsoliin
 5 Tulostuksen jälkeen valikko
 6 Rapsan luonti
