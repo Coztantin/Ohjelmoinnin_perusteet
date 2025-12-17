@@ -454,10 +454,13 @@ def The_MAIN_valikko(tunti_arvot: dict, paivadata: dict) -> None:
             paavalikko(tunti_arvot, paivadata)
         if valinta == "2":
             print("Valitsit vaihtoehdon 2: Luo raportti tekstitiedostoon mukautetusti.")
-            #luo_raportteja()
+            raportti_tyyppi, parametri =luo_raportteja(paivadata)
         if valinta == "3":
             print("Valitsit vaihtoehdon 3: Yhdistä kaikki kansiossa olevat *.csv tiedostot luettavaksi raportiksi ja tallenna raportti tekstitiedostoon.")
-            yhdista_ja_tallenna_raportti(paivadata, "Raporttipinkka/yhdistetty_raportti.txt")
+            time.sleep(1)
+            print("Yhdistetään tiedostot ja tallennetaan raportti tekstitiedostoon...")
+            time.sleep(1)
+            yhdista_ja_tallenna_tiedostot(tunti_arvot, "Raporttipinkka/yhdistetty_raportti.txt")
         if valinta == "4":
             print("Varmaan missklikki, Haluatko varmasti lopettaa?")
             varmistus = input("Vahvista lopetus (K/E): ").strip().upper()
@@ -491,7 +494,15 @@ def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
                 print("Haetaan ja tulostetaan kaikki päivät:")
                 time.sleep(1)
                 tulosta_kaikki(paivadata)
-                input("\n Paina Enter jatkamiseksi...")
+                toiminto = tulostuksen_jalkeen()
+                if toiminto =="1":
+                    continue
+                if toiminto =="2":
+                    return
+                if toiminto =="3":
+                    print("Asia kunnossa, ohjelma suljetaan.")
+                    exit()
+
 
         if valinta == "2":
             print("Valitsit vaihtoehdon 2: Tulosta haluamasi vuoden kokonaisuudessaan konsoliin")
@@ -502,7 +513,14 @@ def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
                 print("Haetaan ja tulostetaan tiedot vuodelta:", vuosi)
                 time.sleep(1)
                 tulosta_vuosi(paivadata, vuosi)
-                input("\n Paina Enter jatkamiseksi...")
+                toiminto = tulostuksen_jalkeen()
+                if toiminto =="1":
+                    continue
+                if toiminto =="2":
+                    return
+                if toiminto =="3":
+                    print("Asia kunnossa, ohjelma suljetaan.")
+                    exit()
                 
         
         if valinta == "3":
@@ -516,7 +534,14 @@ def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
                 print("Haetaan ja tulostetaan tiedot kuukaudelta:", kk_fi)
                 time.sleep(1)
                 tulosta_kuukausi(paivadata, kuukausi)
-                input("\n Paina Enter jatkamiseksi...")
+                toiminto = tulostuksen_jalkeen()
+                if toiminto =="1":
+                    continue
+                if toiminto =="2":
+                    return
+                if toiminto =="3":
+                    print("Asia kunnossa, ohjelma suljetaan.")
+                    exit()
         
         if valinta == "4":
             print("Valitsit vaihtoehdon 4: Tulosta haluamasi kuluvan vuoden viikon yhteenveto konsoliin")
@@ -527,7 +552,14 @@ def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
                 print("Haetaan ja tulostetaan tiedot viikolta:", viikko)
                 time.sleep(1)
                 tulosta_viikko(paivadata, viikko)
-                input("\n Paina Enter jatkamiseksi...")
+                toiminto = tulostuksen_jalkeen()
+                if toiminto =="1":
+                    continue
+                if toiminto =="2":
+                    return
+                if toiminto =="3":
+                    print("Asia kunnossa, ohjelma suljetaan.")
+                    exit()
 
         if valinta == "5":
             print("Valitsit vaihtoehdon 5: Tulosta haluamasi päivän tiedot konsoliin tunneittain, PREMIUM-JÄSENILLE")
@@ -541,7 +573,15 @@ def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
                 print("Haetaan ja tulostetaan tiedot päivältä:", paiva.strftime("%d.%m.%Y"))
                 time.sleep(1)
                 tulosta_paiva(tunti_arvot, paiva)
-                input("\n Paina Enter jatkamiseksi...")
+                toiminto = tulostuksen_jalkeen()
+                if toiminto =="1":
+                    continue
+                if toiminto =="2":
+                    return
+                if toiminto =="3":
+                    print("Asia kunnossa, ohjelma suljetaan.")
+                    exit()
+
         if valinta == "6":
             print("Palataan päävalikkoon.")
             return
@@ -549,7 +589,7 @@ def paavalikko(tunti_arvot: dict, paivadata: dict) -> None | Optional[datetime]:
         if valinta == "7":
             print("Jaaha, Rahaa ja lämpöä on on niin paljon, että voi jakaa harakoillekkin. Ei siin mittää sit... Palaillaan toiste!")
             print("Ohjelma suljetaan.")
-            break
+            exit()
 
 def paavalikko_2_vuosi() -> int:
     '''Päävalikon alivalikko vuoden valintaan.'''
@@ -610,18 +650,92 @@ def paavalikko_5_paiva() -> Optional[date]:
         except ValueError:
             print("Virheellinen päivämäärä. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
 
+def paavalikko_6_aikavali() -> tuple[date, date]:
+    '''Päävalikon alivalikko aikavälin valintaan.'''
+    while True:
+        alku_input = input("Anna aikavälin alku päivämäärä muodossa pp.kk.vvvv (esim. 01.01.2023): ")
+        loppu_input = input("Anna aikavälin loppu päivämäärä muodossa pp.kk.vvvv (esim. 31.12.2023): ")
+        try:
+            alku = datetime.strptime(alku_input, "%d.%m.%Y").date()
+            loppu = datetime.strptime(loppu_input, "%d.%m.%Y").date()
+            if alku <= loppu:
+                return (alku, loppu)
+            else:
+                print("Aikavälin alku ei voi olla myöhemmin kuin loppu. Yritä uudelleen.")
+        except ValueError:
+            print("Virheellinen päivämäärä. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
+
+def luo_raportteja(paivadata: dict) -> tuple[str, object|None]:
+    ''' Määritetään minkälaisia raportteja käyttäjä haluaa luoda.'''
+
+    print("Jahas... Vai että Rapsahommia... Mitä raportteja haluaisit luoda?")
+    print(" Tässä olis vaihtoehdot:")
+    print(" ")
+    print(" 1 - Vuoden kokonaisyhteenveto kuukausittain")
+    print(" 2 - Kuukauden päiväkohtainen yhteenveto viikottain")
+    print(" 3 - Päiväkohtainen raportti valitsemaltasi aikaväliltä")
+    print(" 4 - Takaisin päävalikkoon")
+    print(" ")
+    valinta = input("Valintasi: ").strip().upper()
+    if valinta not in ["1", "2", "3", "4"]:
+        print("Kissa näppäimistöllä? Virheellinen valinta. Yritä uudelleen.")
+    if valinta == "1":
+        print("Valitsit vaihtoehdon 1: Vuoden kokonaisyhteenveto kuukauksittain")
+        varmistus = input("Haluatko varmasti jatkaa? (K/E): ").strip().upper()
+        if varmistus == "K":
+            print("Raportin luonti aloitetaan...")
+            time.sleep(1)
+            vuosi = paavalikko_2_vuosi()
+            luo_txt_tiedosto(paivadata, vuosi, f"vuosi_yhteenveto_{vuosi}.txt")
+            return ("VUOSI_YHTEENVETO", vuosi)
+        
+    if valinta == "2":
+        print("Valitsit vaihtoehdon 2: Kuukauden päiväkohtainen yhteenveto viikottain")
+        varmistus = input("Haluatko varmasti jatkaa? (K/E): ").strip().upper()
+        if varmistus == "K":
+            print("Raportin luonti aloitetaan...")
+            time.sleep(1)
+            kuukausi = paavalikko_3_kuukausi()
+            return ("KK YHTEENVETO", kuukausi)
+        
+    if valinta == "3":
+        print("Valitsit vaihtoehdon 3: Päiväkohtainen raportti valitsemaltasi aikaväliltä")
+        varmistus = input("Haluatko varmasti jatkaa? (K/E): ").strip().upper()
+        if varmistus == "K":
+            print("Raportin luonti aloitetaan...")
+            time.sleep(1)
+            aikavali = paavalikko_6_aikavali()
+            return ("AIKAVALI_YHTEENVETO", aikavali)
+    if valinta == "4":
+        print("Palataan päävalikkoon.")
+        return ("TAKASIN", None)
+
+def tulostuksen_jalkeen() -> str:
+    '''Toiminto, joka suoritetaan raportin luomisen jälkeen.'''
+    while True:
+        print("Mitäs Haluaisit tehdä nyt?")
+        print("--------------------------------")
+        print(" 1 - Tarkastele muita tuloksia")
+        print(" 2 - Palaa Päävalikkoon")
+        print(" 3 - Lopeta ohjelma")
+        valinta = input("Valintasi: ").strip().upper()
+        if valinta in ["1", "2", "3"]:
+            return valinta
+        print("Kissako näppäimistöllä? Virheellinen valinta. Yritä uudelleen.") 
 def raportti_pohja(Rapsa_otsikko: str) -> list[str]:
     '''Muodostaa raportin otsikot ja viivat.'''
     return [
         viivat,
         Rapsa_otsikko,
         viivat,
+        " ",
         (
             f"{'Vuosi':<{Vuosi_W}}"
             f"{'Kuukausi':<{Kuukausi_W}}"
             f"{'Viikko':<{Viikko_W}}"
             f"{'Päivämäärä':<{Päivämäärä_W}}"
             f"{'Päivä':<{Päivä_W}}"
+            f"{'Klo':<{Klo_W}}"
             f"{'Kulutus nettona (kWh)':>{Kulutus_W}}"
             f"{'Tuotanto nettona (kWh)':>{Tuotanto_W}}"
             f"{'Vuorokauden keskilämpötila':>{Lämpötila_W-3}}"
@@ -629,35 +743,47 @@ def raportti_pohja(Rapsa_otsikko: str) -> list[str]:
         viivat
     ]
            
-def muodosta_paivarivit(paivadata: dict) -> list[str]:
+def muodosta_paivarivi(paivat_vuodelta: dict):
     
-    rivit = []
-    for paiva in sorted(paivadata.values(), key=lambda x: datetime.strptime(x['Aika'], "%d.%m.%Y")):
-        rivit.append(
+    for paiva in paivat_vuodelta.values():
+        nykyinen_viikko = paiva["Viikko"]
+        rivit = []
+        if edellinen_viikko is not None and nykyinen_viikko != edellinen_viikko:
+            rivit.append(
             f"{paiva['Vuosi']:<{Vuosi_W}}"+
             f"{paiva['Kuukausi']:<{Kuukausi_W}}"+
-            f"{paiva['Viikko'].removeprefix('vko'):<{Viikko_W}}"+
+            f"{paiva['Viikko'].removeprefix("vko"):<{Viikko_W}}"+
             f"{paiva['Aika']:<{Päivämäärä_W}}"+
             f"{paiva['Päivä']:<{Päivä_W}}"+
             (f"{paiva['Kulutus nettona (kWh)']:>{Kulutus_W}.2f}").replace('.', ',')+
             (f"{paiva['Tuotanto nettona (kWh)']:>{Tuotanto_W}.2f}").replace('.', ',')+
-            f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W-3}} °C"
-        )
+            f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W}}"
+            )
+        edellinen_viikko = nykyinen_viikko # Päivitetään edellinen viikko.
+    return  rivit
+    
 
-    return rivit
-
-def luo_txt_tiedosto(sisalto: str, nimi: str) -> None:
+def suodata_vuosi(paivadata: dict, vuosi: int) -> list[dict]:
+    '''Suodattaa päivädatasta halutun vuoden tiedot.'''
+    return [
+        paiva for paiva in paivadata.values()
+        if paiva["Vuosi"] == vuosi
+    ]
+def luo_txt_tiedosto(paivadata: dict, vuosi: int, nimi: str) -> None:
     '''Luo raportin tekstitiedostoon Raporttipinkka kansioon.'''
     tiedoston_nimi = f"Raporttipinkka/{nimi}.txt"
     raportti: list[str] = []
 
     raportti.extend(
-        raportti_pohja("Sähkönkulutus ja -tuotanto päiväkohtaisesti")
+        raportti_pohja(nimi)
     )
 
-    raportti.extend(
-        muodosta_paivarivit(paivadata)
+    paivat = sorted(suodata_vuosi(paivadata, vuosi),
+                    key=lambda p: p["Aika"]
     )
+
+    for paiva in paivat:
+        raportti.append(muodosta_paivarivi(paivat_vuodelta))
 
     raportti.append(viivat)
 
@@ -669,14 +795,14 @@ def luo_txt_tiedosto(sisalto: str, nimi: str) -> None:
     print(f"Raportti luotu tiedostoon: {tiedoston_nimi}")
 
 
-def yhdista_ja_tallenna_raportti(paivadata: dict, tiedoston_nimi: str) -> None:
+def yhdista_ja_tallenna_tiedostot(tunti_arvot: dict, tiedoston_nimi: str) -> None:
     '''Luo yksinkertaisen päiväkohtaisen raportin tekstitiedostoon.'''
 
     rivit = []
 
     # Otsikot
     rivit.append(viivat)
-    rivit.append("Sähkönkulutus ja -tuotanto päiväkohtaisesti")
+    rivit.append("Kaikkien tiedostojen sähkönkulutus ja -tuotanto tuntikohtaisesti")
     rivit.append(viivat)
     rivit.append(
         f"{'Vuosi':<{Vuosi_W}}"
@@ -684,6 +810,7 @@ def yhdista_ja_tallenna_raportti(paivadata: dict, tiedoston_nimi: str) -> None:
         f"{'Viikko':<{Viikko_W}}"
         f"{'Päivämäärä':<{Päivämäärä_W}}"
         f"{'Päivä':<{Päivä_W}}"
+        f"{'Klo':<{Klo_W}}"
         f"{'Kulutus nettona (kWh)':>{Kulutus_W}}"
         f"{'Tuotanto nettona (kWh)':>{Tuotanto_W}}"
         f"{'Vuorokauden keskilämpötila':>{Lämpötila_W-3}}"
@@ -691,13 +818,14 @@ def yhdista_ja_tallenna_raportti(paivadata: dict, tiedoston_nimi: str) -> None:
     rivit.append(viivat)
 
     # Sisältö
-    for pvm, paiva in sorted(paivadata.items()):
+    for pvm, paiva in sorted(tunti_arvot.items()):
         rivit.append(
             f"{paiva['Vuosi']:<{Vuosi_W}}"
-            f"{paiva['Kuukausi']:<{Kuukausi_W}}"
-            f"{paiva['Viikko'].removeprefix('vko'):<{Viikko_W}}"
-            f"{paiva['Aika']:<{Päivämäärä_W}}" +
+            f"{paiva['Kuukausi']:<{Kuukausi_W}}" +
+            f"{paiva['Viikko']:<{Viikko_W}}" +
+            f"{pvm.strftime('%d.%m.%Y'):<{Päivämäärä_W}}" +
             (f"{paiva['Päivä']:<{Päivä_W}}").replace('.', ',') +
+            f"{pvm.strftime('%H:%M'):<{Klo_W}}" +
             (f"{paiva['Kulutus nettona (kWh)']:>{Kulutus_W}.2f}").replace('.', ',') +
             (f"{paiva['Tuotanto nettona (kWh)']:>{Tuotanto_W}.2f}").replace('.', ',') +
             f"{paiva['Vuorokauden keskilämpötila']:>{Lämpötila_W-3}} °C"
