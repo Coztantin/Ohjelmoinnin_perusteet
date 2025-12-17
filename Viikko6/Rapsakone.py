@@ -121,12 +121,12 @@ def aikavalilta_suodatus(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
                 )
                 paiva_kulutus = 0.0
                 paiva_tuotanto = 0.0
-                paiva_lampotila = None
+                paiva_lampotila = 0.0
                 nykyinen_paiva = pvm #Päivitetään nykyinen päivä
 
             paiva_kulutus += rivi[1]
             paiva_tuotanto += rivi[2]
-            paiva_lampotila = rivi[3] if paiva_lampotila is None else (paiva_lampotila + rivi[3]) / 2
+            paiva_lampotila = rivi[3]
 
             suodatetut_tiedot.append(
                 f"{rivi[0].year}:<{Raportti_pohjan_muotoilut['Vuosi_W']};" +
@@ -141,7 +141,7 @@ def aikavalilta_suodatus(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
             )
             paiva_kulutus = 0.0
             paiva_tuotanto = 0.0
-            paiva_lampotila = None
+            paiva_lampotila = 0.0
             nykyinen_paiva = pvm #Päivitetään nykyinen päivä
         if nykyinen_paiva is not None:
             suodatetut_tiedot.append(
@@ -421,7 +421,7 @@ def main():
     kasittele_tiedostot(tiedostolista)
     alkupvm, loppupvm = date(2025, 1, 1), date(2025, 1, 31)
     
-    print(aikavalilta_suodatus(alkupvm, loppupvm, kaikki_tunnit))
+    print(aikavalilta_suodatus(alkupvm, loppupvm, kaikki_tunnit)[1:10],"\n") #Tulostaa esimerkinomaisesti 10 riviä suodatetuista tiedoista
     #Rapsa = raportti(raportin_Sisalto(), raportin_Pohja())
     #raportti_tiedostoon(Rapsa)
     #print("Raportti on luotu tiedostoon 'Raporttipinkka\\raportti.txt' onnistuneesti.")
