@@ -10,10 +10,12 @@ Tehtävänä laatia ohjelma, joka lukee csv-tiedostot ja tulostaa näistä rapor
 from collections import defaultdict
 from datetime import timedelta, datetime, date, timezone
 import msvcrt
+import sys
 import time
 import csv
 import glob
 
+# Määritellään käännökset viikonpäiville ja kuukausille
 viikonpaivat_kaantaja_en_fi = {
     "Monday": "Maanantai",
     "Tuesday": "Tiistai",
@@ -46,20 +48,22 @@ Raportti_pohjan_muotoilut = {
     "Päivämäärä_W" : 15,
     "Päivä_W" : 15,
     "Klo_W" : 6,
-    "Kulutus_W" : 30,
-    "Tuotanto_W" : 30,
-    "Lämpötila_W" : 33,
+    "Kulutus_W" : 20,
+    "Tuotanto_W" : 20,
+    "Lämpötila_W" : 23,
+    "korjausmäärä" : 8
 }
 Raportti_pohjan_muotoilut["viivanpituus"] = sum(Raportti_pohjan_muotoilut.values())
 Raportti_pohjan_muotoilut["viivat"] = "-" * Raportti_pohjan_muotoilut["viivanpituus"] # type: ignore
 
-
+# Globaalit muuttujat
 tiedostolista = []
 kaikki_tunnit = []
 def luetiedostot() -> list:
     '''Hakee kaikki csv-tiedostot annetusta kansiosta.'''
     print(" ")
     print("Luetaan kansiosta *.csv tiedostot.")
+    lataus_animointi()
 
     tiedostolista = sorted(glob.glob("*.csv"))
     print("Kansiossa olevat tiedostot:", tiedostolista)
@@ -241,18 +245,23 @@ def Valikko():
             print("")
             exit()
         elif eka_valinta == 1:
-            time.sleep(1)
+            time.sleep(0.5)
             print("")
             print("Valitsit päiväkohtaisen yhteenvedon aikaväliltä.\n"
-                  "Tarvitaan alkupäivämäärä ja loppupäivämäärä muodossa pp.kk.vvvv.")
+                  "Tarvitaan alkupäivämäärä ja loppupäivämäärä muodossa p.k.vvvv.")
+            time.sleep(1)
+            print(" ")
             alkupvm, loppupvm = valikko_aikavali()
             print(f"Valitsit aikavälin {alkupvm.strftime('%d.%m.%Y')} - {loppupvm.strftime('%d.%m.%Y')}. Käsitellään tiedot...")
+            print("")
+            lataus_animointi()
             sisalto, yhteenveto = aikavali_rapsis(alkupvm, loppupvm, kaikki_tunnit)
             time.sleep(1)
             print("")
             print("Yhteenveto aikaväliltä:")
             print(yhteenveto)
             print("")
+            time.sleep(3)
             print(sisalto)
             print("")
             time.sleep(1)
@@ -442,12 +451,46 @@ def raportti_tiedostoon(raportti: str):
     with open("Raporttipinkka\\raportti.txt", "w", encoding="utf-8") as f:
         f.write(raportti)
 
+def lataus_animointi(pituus=30, viive=0.1, teksti="Käsitellään..."):
+    '''Näyttää lataus animaation konsolissa.'''
+    print(teksti)
+    for i in range(pituus+1):
+        palkki = "|" + "." * i + " " * (pituus - i) + "|"
+        sys.stdout.write("\r" + " " * (pituus + 2))  # tyhjennä rivi
+        sys.stdout.write("\r" + palkki)
+        sys.stdout.flush()
+        time.sleep(viive)
+    print("\n")
+
+def Mainos() -> None:
+    '''Mainokset pääsi mystisesti tähän ohjelmaan.'''
+
+    premium_mainos = str("PREMIUM-JÄSENYYS: VAIN 9,99 €kk!")
+    premium_mainos_raamit = str("#")
+    pisin_teksti = str( "No ei hätää, me autamme sinua tässä asiassa! Nyt voit saada selville sähkönkulutuksesi ja -tuotantosi päivä-, viikko-, ja kuukausitasolla helposti ja nopeasti!")
+    print(" ")
+    print("-"*len(pisin_teksti))
+    print("Tervetuloa AurinkoSähköPaneeliRapsaGeneraattori Palveluun!")
+    print(" ")
+    print("Tulitko hakemaan viikkoraporttia sähkönkulutuksesta ja -tuotannosta? Vai tulitko vertailemaan päivittäistä sähkönkulutusta ja -tuotantoa?")
+    print("Etkö tiedä mikä kuluttaa hirveästi sähköä? Puolisosi on taas torkkunut sähköpeiton alla? Lapset pelaa yötämyöhään pleikkarilla?")
+    print(pisin_teksti)
+    print("Maksamalla premium-jäsenyyden saat vielä tarkemmat raportit ja analyysit sähkönkulutuksestasi ja -tuotannostasi! Nyt voit selvittää mihin sähkö oikein kuluu!")
+    print("")
+    print('#'*(len(premium_mainos + premium_mainos_raamit*2)+4))
+    print('#' + ' '*(len(premium_mainos + premium_mainos_raamit*2)+2) + '#')
+    print(f"#  {premium_mainos}  #")
+    print("#" + ' '*(len(premium_mainos + premium_mainos_raamit*2)+2) + '#')
+    print('#'*(len(premium_mainos + premium_mainos_raamit*2)+4))
+    print(" ")
+    print("-"*len(pisin_teksti))
 
 def main():
     '''Pääohjelma. Kysyy Käyttäjältä valikon avulla halutun toiminnon ja suorittaa sen. Tulosten tarkistelu ja tallennus tiedostoon.'''
 
     tiedostolista =luetiedostot()
     kasittele_tiedostot(tiedostolista)
+    Mainos()
     Valikko()
     
     #print(aikavalilta_suodatus(alkupvm, loppupvm, kaikki_tunnit)[1:10],"\n") #Tulostaa esimerkinomaisesti 10 riviä suodatetuista tiedoista
