@@ -54,7 +54,6 @@ Raportti_pohjan_muotoilut["viivanpituus"] = sum(Raportti_pohjan_muotoilut.values
 Raportti_pohjan_muotoilut["viivat"] = "-" * Raportti_pohjan_muotoilut["viivanpituus"] # type: ignore
 
 
-
 tiedostolista = []
 kaikki_tunnit = []
 def luetiedostot() -> list:
@@ -98,6 +97,7 @@ def aikavali_rapsis(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
     tuotanto_summa = 0.0
     lampotila_summa = 0.0
     lampotila_klt = 0.0
+    lampotila_lkm = 0
     
     for rivi in kaikki_tunnit:
         if alkupvm <= rivi[0].date() <= loppupvm:
@@ -107,7 +107,7 @@ def aikavali_rapsis(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
                 f"{rivi[0].isocalendar()[1]:<{Raportti_pohjan_muotoilut['Viikko_W']}} "
                 f"{rivi[0].date().strftime('%d.%m.%Y'):<{Raportti_pohjan_muotoilut['Päivämäärä_W']}} "
                 f"{viikonpaivat_kaantaja_en_fi[rivi[0].strftime('%A')]:<{Raportti_pohjan_muotoilut['Päivä_W']}} "
-                f"{rivi[0].strftime('%H:%M'):>{Raportti_pohjan_muotoilut['Klo_W']}} ")+(
+                f"{rivi[0].strftime('%H:%M'):<{Raportti_pohjan_muotoilut['Klo_W']}} ")+(
                 (f"{rivi[1]:>{Raportti_pohjan_muotoilut['Kulutus_W']}.2f} ").replace(".", ",") +
                 (f"{rivi[2]:>{Raportti_pohjan_muotoilut['Tuotanto_W']}.2f} ").replace(".", ",") + 
                 (f"{rivi[3]:>{Raportti_pohjan_muotoilut['Lämpötila_W']}.2f}\n").replace(".", ",")
@@ -115,7 +115,8 @@ def aikavali_rapsis(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
             kulutus_summa += rivi[1]
             tuotanto_summa += rivi[2]
             lampotila_summa += rivi[3]
-            lampotila_klt = lampotila_summa / (((loppupvm - alkupvm).days + 1) * 24)  #Otetaan huomioon myös viimeinen päivä
+            lampotila_lkm += 1
+            lampotila_klt = lampotila_summa / lampotila_lkm  #Otetaan huomioon myös viimeinen päivä
     yhteenveto += (
         f"{Raportti_pohjan_muotoilut['viivat']}\n"
         f"Valitulta aikaväliltä {alkupvm.strftime('%d.%m.%Y')} - {loppupvm.strftime('%d.%m.%Y')} yhteenveto:\n"
@@ -126,11 +127,8 @@ def aikavali_rapsis(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
         f"Keskimääräinen lämpötila: {lampotila_klt:.2f} °C\n".replace(".", ",") +
         f"{Raportti_pohjan_muotoilut['viivat']}\n"
     )
-    print("")
-    print(yhteenveto)
-    print("")
-    print(sisalto)
-    return sisalto
+    
+    return sisalto, yhteenveto
       
 def Valikko() -> int:
     '''Näyttää valikon ja palauttaa käyttäjän valinnan.'''
@@ -165,7 +163,15 @@ def Valikko() -> int:
                   "Tarvitaan alkupäivämäärä ja loppupäivämäärä muodossa pp.kk.vvvv.")
             alkupvm, loppupvm = valikko_aikavali()
             print(f"Valitsit aikavälin {alkupvm.strftime('%d.%m.%Y')} - {loppupvm.strftime('%d.%m.%Y')}. Käsitellään tiedot...")
-            aikavali_rapsis(alkupvm, loppupvm, kaikki_tunnit)
+            sisalto, yhteenveto = aikavali_rapsis(alkupvm, loppupvm, kaikki_tunnit)
+            time.sleep(1)
+            print("")
+            print("Yhteenveto aikaväliltä:")
+            print(yhteenveto)
+            print("")
+            print(sisalto)
+            print("")
+            time.sleep(1)
 
             # Kutsu funktiota, joka käsittelee päiväkohtaisen yhteenvedon
         elif eka_valinta == 2:
@@ -210,16 +216,20 @@ def Valikko() -> int:
                 continue
 
             elif toka_valinta == 0:
-                time.sleep(1)
                 print("Päivän työ on tehty, ohjelma sulkeutuu. Pailaillaan!")
                 print("")
                 exit()
+                
             elif toka_valinta == 1:
                 time.sleep(1)
                 print("")
                 print("Valitsit Kirjoita raportti tiedostoon.\n"
                       "Aloitetaan raportin kirjoitus...")
                 time.sleep(1)
+                sisalto, yhteenveto = aikavali_rapsis(alkupvm, loppupvm, kaikki_tunnit)
+                Rapsa = raportti(
+                    raportin_Sisalto(sisalto), raportin_Pohja(yhteenveto))
+                raportti_tiedostoon(Rapsa)
 
                 # Kutsu funktiota, joka kirjoittaa raportin tiedostoon
                 print("Raportti kirjoitettu tiedostoon onnistuneesti!\n"
@@ -288,21 +298,23 @@ def valikko_aikavali() -> tuple[date, date]:
         except ValueError:
             print("Virheellinen päivämäärä. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
 
-def raportin_Sisalto(alku: date, loppu: date, kaikki_tunnit: list) -> str:
+def raportin_Sisalto(sisalto) -> str:
     '''Luo raportin sisällön.'''
     
     raportti_sisalto = ""
-    raportti_sisalto += aikavali_rapsis(alku, loppu, kaikki_tunnit)    
+    raportti_sisalto += sisalto
     return raportti_sisalto
 
-def raportin_Pohja(aikavali_rapsis) -> str:
+def raportin_Pohja(yhteenveto) -> str:
     '''Luo raportin pohjan.'''
     #Tätä muokataan jos ehditään lisäämään modulaarisuutta
+    
 
     raportti_pohja = "Rapsakone Raportti - Yhteenveto\n"               
     raportti_pohja += f"{Raportti_pohjan_muotoilut['viivat']}\n"
-    raportti_pohja += "Valitsit  \n"   #Tätäkin voisi muokata modulaarisuutta
-    raportti_pohja += f"{Raportti_pohjan_muotoilut['viivat']}\n"
+    raportti_pohja += yhteenveto
+    raportti_pohja += "\n"
+    raportti_pohja += "Alla eritetty vielä päiväkohtaiset tiedot:\n"
     raportti_pohja += f"{'Vuosi':<{Raportti_pohjan_muotoilut['Vuosi_W']}} {'Kuukausi':<{Raportti_pohjan_muotoilut['Kuukausi_W']}} {'Viikko':<{Raportti_pohjan_muotoilut['Viikko_W']}} {'Päivämäärä':<{Raportti_pohjan_muotoilut['Päivämäärä_W']}} {'Päivä':<{Raportti_pohjan_muotoilut['Päivä_W']}} {'Klo':<{Raportti_pohjan_muotoilut['Klo_W']}} {'Kulutus (kWh)':>{Raportti_pohjan_muotoilut['Kulutus_W']}} {'Tuotanto (kWh)':>{Raportti_pohjan_muotoilut['Tuotanto_W']}} {'Lämpötila (°C)':>{Raportti_pohjan_muotoilut['Lämpötila_W']}}\n" 
     raportti_pohja += f"{Raportti_pohjan_muotoilut['viivat']}\n"
 
