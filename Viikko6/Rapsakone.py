@@ -129,9 +129,93 @@ def aikavali_rapsis(alkupvm: date, loppupvm: date,kaikki_tunnit: list):
     )
     
     return sisalto, yhteenveto
-      
-def Valikko() -> int:
+
+def kk_rapsis(kuukausi: int, vuosi: int, kaikki_tunnit: list):
+
+    sisalto = ""
+    yhteenveto = ""
+    kulutus_summa = 0.0
+    tuotanto_summa = 0.0
+    lampotila_summa = 0.0
+    lampotila_klt = 0.0
+    lampotila_lkm = 0
+    
+    for rivi in kaikki_tunnit:
+        if rivi[0].year == vuosi and rivi[0].month == kuukausi:
+            sisalto +=( 
+                f"{rivi[0].year:<{Raportti_pohjan_muotoilut['Vuosi_W']}} " 
+                f"{kuukaudet_kaantaja_en_fi[rivi[0].strftime('%B')]:<{Raportti_pohjan_muotoilut['Kuukausi_W']}} "
+                f"{rivi[0].isocalendar()[1]:<{Raportti_pohjan_muotoilut['Viikko_W']}} "
+                f"{rivi[0].date().strftime('%d.%m.%Y'):<{Raportti_pohjan_muotoilut['Päivämäärä_W']}} "
+                f"{viikonpaivat_kaantaja_en_fi[rivi[0].strftime('%A')]:<{Raportti_pohjan_muotoilut['Päivä_W']}} "
+                f"{rivi[0].strftime('%H:%M'):<{Raportti_pohjan_muotoilut['Klo_W']}} ")+(
+                (f"{rivi[1]:>{Raportti_pohjan_muotoilut['Kulutus_W']}.2f} ").replace(".", ",") +
+                (f"{rivi[2]:>{Raportti_pohjan_muotoilut['Tuotanto_W']}.2f} ").replace(".", ",") + 
+                (f"{rivi[3]:>{Raportti_pohjan_muotoilut['Lämpötila_W']}.2f}\n").replace(".", ",")
+            )
+            kulutus_summa += rivi[1]
+            tuotanto_summa += rivi[2]
+            lampotila_summa += rivi[3]
+            lampotila_lkm += 1
+            lampotila_klt = lampotila_summa / lampotila_lkm  #Otetaan huomioon myös viimeinen päivä
+    yhteenveto += (
+        f"{Raportti_pohjan_muotoilut['viivat']}\n"
+        f"Kuluvan vuoden ({vuosi}) valitun kuukauden {kuukausi} - {kuukaudet_kaantaja_en_fi[datetime(vuosi, kuukausi, 1).strftime('%B')]} yhteenveto:\n"
+        f"\n")
+    yhteenveto += (
+        f"Sähkönkulutus yhteensä: {kulutus_summa:.2f} kWh\n".replace(".", ",") +
+        f"Sähköntuotanto yhteensä: {tuotanto_summa:.2f} kWh\n".replace(".", ",") +
+        f"Keskimääräinen lämpötila: {lampotila_klt:.2f} °C\n".replace(".", ",") +
+        f"{Raportti_pohjan_muotoilut['viivat']}\n"
+    )
+    
+    return sisalto, yhteenveto
+
+def vuosi_rapsis(vuosi: int, kaikki_tunnit: list):
+    sisalto = ""
+    yhteenveto = ""
+    kulutus_summa = 0.0
+    tuotanto_summa = 0.0
+    lampotila_summa = 0.0
+    lampotila_klt = 0.0
+    lampotila_lkm = 0
+    
+    for rivi in kaikki_tunnit:
+        if rivi[0].year == vuosi:
+            sisalto +=( 
+                f"{rivi[0].year:<{Raportti_pohjan_muotoilut['Vuosi_W']}} " 
+                f"{kuukaudet_kaantaja_en_fi[rivi[0].strftime('%B')]:<{Raportti_pohjan_muotoilut['Kuukausi_W']}} "
+                f"{rivi[0].isocalendar()[1]:<{Raportti_pohjan_muotoilut['Viikko_W']}} "
+                f"{rivi[0].date().strftime('%d.%m.%Y'):<{Raportti_pohjan_muotoilut['Päivämäärä_W']}} "
+                f"{viikonpaivat_kaantaja_en_fi[rivi[0].strftime('%A')]:<{Raportti_pohjan_muotoilut['Päivä_W']}} "
+                f"{rivi[0].strftime('%H:%M'):<{Raportti_pohjan_muotoilut['Klo_W']}} ")+(
+                (f"{rivi[1]:>{Raportti_pohjan_muotoilut['Kulutus_W']}.2f} ").replace(".", ",") +
+                (f"{rivi[2]:>{Raportti_pohjan_muotoilut['Tuotanto_W']}.2f} ").replace(".", ",") + 
+                (f"{rivi[3]:>{Raportti_pohjan_muotoilut['Lämpötila_W']}.2f}\n").replace(".", ",")
+            )
+            kulutus_summa += rivi[1]
+            tuotanto_summa += rivi[2]
+            lampotila_summa += rivi[3]
+            lampotila_lkm += 1
+            lampotila_klt = lampotila_summa / lampotila_lkm  #Otetaan huomioon myös viimeinen päivä
+    yhteenveto += (
+        f"{Raportti_pohjan_muotoilut['viivat']}\n"
+        f"Valitun vuoden ({vuosi}) yhteenveto:\n"
+        f"\n")
+    yhteenveto += (
+        f"Sähkönkulutus yhteensä: {kulutus_summa:.2f} kWh\n".replace(".", ",") +
+        f"Sähköntuotanto yhteensä: {tuotanto_summa:.2f} kWh\n".replace(".", ",") +
+        f"Keskimääräinen lämpötila: {lampotila_klt:.2f} °C\n".replace(".", ",") +
+        f"{Raportti_pohjan_muotoilut['viivat']}\n"
+    )
+    
+    return sisalto, yhteenveto
+
+def Valikko():
     '''Näyttää valikon ja palauttaa käyttäjän valinnan.'''
+
+    sisalto = None
+    yhteenveto = None
     
     # Ensimmäinen valikko
     while True:
@@ -179,10 +263,21 @@ def Valikko() -> int:
             print("")
             print("Valitsit kuukausikohtaisen yhteenvedon yhdelle kuukaudelle.\n"
                   "Tarvitaan kuukauden numero väliltä 1-12:")
-            kuukausi = valikko_kuukausi()
-            print(f"Valitsit kuukauden: {kuukausi}. Käsitellään tiedot...")
+            kuukausi, vuosi = valikko_kuukausi()
+            kk_teksti = kuukaudet_kaantaja_en_fi[datetime(vuosi, kuukausi, 1).strftime('%B')]
             print("")
-            # Kutsu funktiota, joka käsittelee kuukausikohtaisen yhteenvedon
+            print(f"Valitsit kuukauden: {kuukausi}, {kk_teksti}. Käsitellään vuotta {vuosi}. Käsitellään tiedot...")
+            print("")
+            sisalto, yhteenveto = kk_rapsis(kuukausi, vuosi, kaikki_tunnit)
+            time.sleep(1)
+            print("")
+            print("Yhteenveto aikaväliltä:")
+            print(yhteenveto)
+            print("")
+            print(sisalto)
+            print("")
+            time.sleep(1)
+
         elif eka_valinta == 3:
             time.sleep(1)
             print("")
@@ -191,6 +286,15 @@ def Valikko() -> int:
             vuosi = valikko_vuosi()            
             print(f"Valitsit vuoden: {vuosi}. Käsitellään tiedot...")
             print("")
+            sisalto, yhteenveto = vuosi_rapsis(vuosi, kaikki_tunnit)
+            time.sleep(1)
+            print("")
+            print("Yhteenveto vuodelta:")
+            print(yhteenveto)
+            print("")
+            print(sisalto)
+            print("")
+            time.sleep(1)
                 # Kutsu funktiota, joka käsittelee vuoden kokonaisyhteenvedon
         
         else:
@@ -219,14 +323,18 @@ def Valikko() -> int:
                 print("Päivän työ on tehty, ohjelma sulkeutuu. Pailaillaan!")
                 print("")
                 exit()
-                
+
             elif toka_valinta == 1:
                 time.sleep(1)
                 print("")
                 print("Valitsit Kirjoita raportti tiedostoon.\n"
                       "Aloitetaan raportin kirjoitus...")
                 time.sleep(1)
-                sisalto, yhteenveto = aikavali_rapsis(alkupvm, loppupvm, kaikki_tunnit)
+                if sisalto == None or yhteenveto == None:
+                    print("Ei ole luotu raporttia, palataan valikkoon...")
+                    return Valikko()
+                
+                 # Kutsu funktiota, joka luo raportin sisällön ja pohjan
                 Rapsa = raportti(
                     raportin_Sisalto(sisalto), raportin_Pohja(yhteenveto))
                 raportti_tiedostoon(Rapsa)
@@ -268,7 +376,7 @@ def valikko_vuosi() -> int:
         except ValueError:
             print("Virheellinen syöte. Ota kissa pois näppäimistöltä, siirrä se syliin ja yritä uudelleen.")
 
-def valikko_kuukausi() -> int:
+def valikko_kuukausi():
     '''Päävalikon alivalikko kuukauden valintaan.'''
     while True:
 
@@ -277,7 +385,7 @@ def valikko_kuukausi() -> int:
             vuosi = datetime.now().year
             kuukausi = int(kuukausi_input)
             if 1 <= kuukausi <= 12 and vuosi == datetime.now().year:
-                return kuukausi
+                return kuukausi, vuosi
             else:
                 print("Anna Nyt jotain järkevää, jotain kuukauden numero välillä 1-12!")
         except ValueError:
